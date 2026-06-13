@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="photoBg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a1a0a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a0f05;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d0703;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#photoBg4)"/>
+  <!-- 丝路展馆装饰 -->
+  <path d="M0 100 Q300 50 600 100" fill="none" stroke="#d4af37" stroke-width="3" opacity="0.6"/>
+  <path d="M0 150 Q300 100 600 150" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.4"/>
+  <!-- 展品陈列柜 -->
+  <rect x="100" y="250" width="150" height="300" rx="5" fill="#1a0f05" stroke="#d4af37" stroke-width="2" opacity="0.6"/>
+  <rect x="350" y="250" width="150" height="300" rx="5" fill="#1a0f05" stroke="#d4af37" stroke-width="2" opacity="0.6"/>
+  <!-- 金币 -->
+  <circle cx="175" cy="350" r="50" fill="#ffd700" opacity="0.8"/>
+  <circle cx="175" cy="350" r="40" fill="#daa520" opacity="0.5"/>
+  <text x="175" y="360" text-anchor="middle" fill="#8b4513" font-size="24">☽</text>
+  <!-- 丝绸 -->
+  <path d="M380 280 Q425 260 470 280 L470 480 Q425 460 380 480 Z" 
+        fill="#ff6b9d" opacity="0.5"/>
+  <path d="M390 290 Q425 275 460 290 L460 470 Q425 455 390 470 Z" 
+        fill="#ffb3c6" opacity="0.4"/>
+  <!-- 骆驼剪影 -->
+  <path d="M420 520 L430 480 L450 470 L465 480 L475 520 Z" fill="#d4af37" opacity="0.3"/>
+  <circle cx="450" cy="460" r="15" fill="#d4af37" opacity="0.3"/>
+  <!-- 地面 -->
+  <rect x="0" y="600" width="600" height="200" fill="#0d0703"/>
+  <!-- 文字 -->
+  <text x="300" y="700" text-anchor="middle" fill="#d4af37" font-size="22" font-family="serif">
+    丝路展馆
+  </text>
+  <text x="300" y="730" text-anchor="middle" fill="#886644" font-size="14">
+    Silk Road Exhibition
+  </text>
+</svg>

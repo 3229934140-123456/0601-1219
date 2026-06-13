@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <linearGradient id="exbg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2d4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a1628;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="jade" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#a8e6cf;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#88d8b0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#56ab84;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="glowEx2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#a8e6cf;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#88d8b0;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="300" height="300" fill="url(#exbg2)"/>
+  <circle cx="150" cy="150" r="90" fill="url(#glowEx2)"/>
+  <!-- 玉璧外圆 -->
+  <circle cx="150" cy="150" r="80" fill="url(#jade)"/>
+  <!-- 玉璧内孔 -->
+  <circle cx="150" cy="150" r="25" fill="#0a1628"/>
+  <!-- 谷纹装饰 -->
+  <g fill="#56ab84" opacity="0.6">
+    <circle cx="150" cy="80" r="4" />
+    <circle cx="190" cy="90" r="3" />
+    <circle cx="215" cy="120" r="4" />
+    <circle cx="220" cy="150" r="3" />
+    <circle cx="215" cy="180" r="4" />
+    <circle cx="190" cy="210" r="3" />
+    <circle cx="150" cy="220" r="4" />
+    <circle cx="110" cy="210" r="3" />
+    <circle cx="85" cy="180" r="4" />
+    <circle cx="80" cy="150" r="3" />
+    <circle cx="85" cy="120" r="4" />
+    <circle cx="110" cy="90" r="3" />
+  </g>
+  <!-- 玉璧纹理 -->
+  <circle cx="150" cy="150" r="65" fill="none" stroke="#56ab84" stroke-width="1" opacity="0.5"/>
+  <circle cx="150" cy="150" r="50" fill="none" stroke="#56ab84" stroke-width="1" opacity="0.4"/>
+  <!-- 高光 -->
+  <ellipse cx="120" cy="110" rx="20" ry="10" fill="#ffffff" opacity="0.3" transform="rotate(-30 120 110)"/>
+  <!-- 粒子 -->
+  <circle cx="40" cy="60" r="2" fill="#a8e6cf" opacity="0.5"/>
+  <circle cx="260" cy="50" r="1.5" fill="#ffffff" opacity="0.4"/>
+  <circle cx="250" cy="240" r="2" fill="#88d8b0" opacity="0.3"/>
+  <circle cx="50" cy="260" r="1.5" fill="#ffffff" opacity="0.3"/>
+</svg>

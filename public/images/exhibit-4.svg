@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 350">
+  <defs>
+    <linearGradient id="exbg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2d4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a1628;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="porcelain" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e8f4f8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d0e8f0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bluePattern" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1560bd;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d3b7d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1560bd;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="350" fill="url(#exbg4)"/>
+  <!-- 花瓶主体 -->
+  <!-- 瓶口 -->
+  <ellipse cx="150" cy="60" rx="30" ry="10" fill="url(#bluePattern)"/>
+  <rect x="120" y="60" width="60" height="20" fill="url(#bluePattern)"/>
+  <!-- 瓶颈 -->
+  <path d="M120 80 Q115 100 120 120 L180 120 Q185 100 180 80 Z" 
+        fill="url(#porcelain)"/>
+  <!-- 瓶肩 -->
+  <path d="M120 120 Q90 140 80 180 L220 180 Q210 140 180 120 Z" 
+        fill="url(#porcelain)"/>
+  <!-- 瓶身 -->
+  <path d="M80 180 L70 250 Q75 290 150 290 Q225 290 230 250 L220 180 Z" 
+        fill="url(#porcelain)"/>
+  <!-- 瓶底 -->
+  <ellipse cx="150" cy="290" rx="75" ry="10" fill="#a0c8d0"/>
+  <!-- 青花装饰 - 颈部 -->
+  <path d="M125 95 Q150 85 175 95" fill="none" stroke="#1560bd" stroke-width="2"/>
+  <path d="M128 105 Q150 95 172 105" fill="none" stroke="#1560bd" stroke-width="1.5"/>
+  <!-- 青花装饰 - 肩部缠枝莲 -->
+  <path d="M95 150 Q120 140 150 150 Q180 140 205 150" 
+        fill="none" stroke="#0d3b7d" stroke-width="3" opacity="0.8"/>
+  <circle cx="110" cy="145" r="6" fill="#1560bd" opacity="0.7"/>
+  <circle cx="150" cy="138" r="8" fill="#0d3b7d" opacity="0.8"/>
+  <circle cx="190" cy="145" r="6" fill="#1560bd" opacity="0.7"/>
+  <!-- 青花装饰 - 主体花纹 -->
+  <path d="M100 200 Q130 190 150 210 Q170 190 200 200" 
+        fill="none" stroke="#1560bd" stroke-width="4" opacity="0.7"/>
+  <path d="M90 230 Q120 220 150 240 Q180 220 210 230" 
+        fill="none" stroke="#0d3b7d" stroke-width="3" opacity="0.6"/>
+  <!-- 花朵图案 -->
+  <g transform="translate(130, 220)">
+    <circle cx="0" cy="0" r="12" fill="none" stroke="#1560bd" stroke-width="2" opacity="0.8"/>
+    <circle cx="0" cy="0" r="4" fill="#0d3b7d" opacity="0.9"/>
+    <ellipse cx="0" cy="-10" rx="4" ry="6" fill="#1560bd" opacity="0.7"/>
+    <ellipse cx="0" cy="10" rx="4" ry="6" fill="#1560bd" opacity="0.7"/>
+    <ellipse cx="-10" cy="0" rx="6" ry="4" fill="#1560bd" opacity="0.7"/>
+    <ellipse cx="10" cy="0" rx="6" ry="4" fill="#1560bd" opacity="0.7"/>
+  </g>
+  <g transform="translate(180, 240)">
+    <circle cx="0" cy="0" r="10" fill="none" stroke="#0d3b7d" stroke-width="2" opacity="0.7"/>
+    <circle cx="0" cy="0" r="3" fill="#1560bd" opacity="0.8"/>
+  </g>
+  <!-- 高光 -->
+  <path d="M85 190 L80 250 Q82 270 100 275" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.4"/>
+  <!-- 粒子 -->
+  <circle cx="40" cy="80" r="2" fill="#d4af37" opacity="0.4"/>
+  <circle cx="260" cy="100" r="1.5" fill="#ffffff" opacity="0.3"/>
+  <circle cx="250" cy="300" r="2" fill="#d4af37" opacity="0.3"/>
+  <circle cx="50" cy="320" r="1.5" fill="#ffffff" opacity="0.3"/>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgA1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#b6e3f4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#87ceeb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="50" fill="url(#bgA1)"/>
+  <!-- 脸部 -->
+  <ellipse cx="50" cy="55" rx="28" ry="32" fill="#ffd4a8"/>
+  <!-- 头发 -->
+  <path d="M22 50 Q25 25 50 20 Q75 25 78 50 L75 40 Q70 30 50 28 Q30 30 25 40 Z" 
+        fill="#4a3728"/>
+  <!-- 探险帽 -->
+  <ellipse cx="50" cy="25" rx="35" ry="8" fill="#8b4513"/>
+  <ellipse cx="50" cy="22" rx="25" ry="15" fill="#a0522d"/>
+  <rect x="30" y="20" width="40" height="4" fill="#654321"/>
+  <!-- 眼睛 -->
+  <ellipse cx="40" cy="55" rx="4" ry="5" fill="#2d1f14"/>
+  <ellipse cx="60" cy="55" rx="4" ry="5" fill="#2d1f14"/>
+  <circle cx="41" cy="54" r="1.5" fill="#ffffff"/>
+  <circle cx="61" cy="54" r="1.5" fill="#ffffff"/>
+  <!-- 眉毛 -->
+  <path d="M34 48 Q40 46 46 48" fill="none" stroke="#4a3728" stroke-width="2" stroke-linecap="round"/>
+  <path d="M54 48 Q60 46 66 48" fill="none" stroke="#4a3728" stroke-width="2" stroke-linecap="round"/>
+  <!-- 鼻子 -->
+  <path d="M50 55 L48 65 Q50 67 52 65" fill="none" stroke="#e8b987" stroke-width="2"/>
+  <!-- 嘴巴 -->
+  <path d="M42 72 Q50 76 58 72" fill="none" stroke="#dc143c" stroke-width="2" stroke-linecap="round"/>
+  <!-- 腮红 -->
+  <ellipse cx="32" cy="65" rx="6" ry="4" fill="#ffb6c1" opacity="0.5"/>
+  <ellipse cx="68" cy="65" rx="6" ry="4" fill="#ffb6c1" opacity="0.5"/>
+</svg>

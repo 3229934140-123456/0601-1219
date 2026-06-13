@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300">
+  <defs>
+    <linearGradient id="bannerBg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a2e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2d1b4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a0a2e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#daa520;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="300" fill="url(#bannerBg3)"/>
+  <!-- 星星背景 -->
+  <circle cx="50" cy="40" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="150" cy="70" r="1" fill="#ffffff" opacity="0.6"/>
+  <circle cx="300" cy="30" r="2" fill="#ffffff" opacity="0.9"/>
+  <circle cx="450" cy="60" r="1" fill="#ffffff" opacity="0.7"/>
+  <circle cx="600" cy="40" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="720" cy="80" r="1" fill="#ffffff" opacity="0.6"/>
+  <circle cx="100" cy="250" r="1" fill="#d4af37" opacity="0.5"/>
+  <circle cx="250" cy="270" r="1.5" fill="#d4af37" opacity="0.4"/>
+  <circle cx="550" cy="260" r="1" fill="#d4af37" opacity="0.5"/>
+  <circle cx="700" cy="240" r="1.5" fill="#d4af37" opacity="0.4"/>
+  <!-- 纪念章展示 -->
+  <!-- 大纪念章 -->
+  <circle cx="650" cy="150" r="70" fill="url(#goldGradient)" opacity="0.3"/>
+  <circle cx="650" cy="150" r="55" fill="none" stroke="url(#goldGradient)" stroke-width="4"/>
+  <text x="650" y="160" text-anchor="middle" font-size="40">🏆</text>
+  <!-- 小纪念章 -->
+  <circle cx="560" cy="100" r="30" fill="url(#goldGradient)" opacity="0.2"/>
+  <circle cx="560" cy="100" r="24" fill="none" stroke="url(#goldGradient)" stroke-width="2"/>
+  <text x="560" y="108" text-anchor="middle" font-size="20">⭐</text>
+  
+  <circle cx="730" cy="110" r="25" fill="none" stroke="#9370db" stroke-width="2" opacity="0.7"/>
+  <text x="730" y="118" text-anchor="middle" font-size="18">💎</text>
+  
+  <circle cx="570" cy="210" r="28" fill="none" stroke="#9370db" stroke-width="2" opacity="0.6"/>
+  <text x="570" y="218" text-anchor="middle" font-size="20">🎨</text>
+  
+  <circle cx="720" cy="220" r="22" fill="none" stroke="#00d4aa" stroke-width="2" opacity="0.7"/>
+  <text x="720" y="228" text-anchor="middle" font-size="16">🦕</text>
+  <!-- 光晕 -->
+  <circle cx="650" cy="150" r="90" fill="url(#goldGradient)" opacity="0.1">
+    <animate attributeName="r" values="80;100;80" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- 文字 -->
+  <text x="60" y="120" fill="url(#goldGradient)" font-size="38" font-weight="bold" font-family="serif">
+    新春纪念章
+  </text>
+  <text x="60" y="160" fill="#c0a8e0" font-size="16" font-family="sans-serif">
+    收集兑换好礼 · 限时活动
+  </text>
+  <text x="60" y="195" fill="#d4af37" font-size="14" font-family="sans-serif">
+    10+限定纪念章等你收集
+  </text>
+</svg>

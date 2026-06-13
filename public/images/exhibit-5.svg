@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 300">
+  <defs>
+    <linearGradient id="exbg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2d4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a1628;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bone1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f5dc;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e8e4c9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4cfb5;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowDino" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#d4af37;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="350" height="300" fill="url(#exbg5)"/>
+  <ellipse cx="175" cy="150" rx="150" ry="100" fill="url(#glowDino)"/>
+  <!-- 恐龙骨架 - 侧面 -->
+  <!-- 头骨 -->
+  <ellipse cx="280" cy="100" rx="40" ry="25" fill="none" stroke="url(#bone1)" stroke-width="4"/>
+  <ellipse cx="290" cy="95" rx="25" ry="15" fill="none" stroke="#c4bf9f" stroke-width="2"/>
+  <!-- 眼睛孔 -->
+  <circle cx="295" cy="90" r="6" fill="#0a1628" stroke="#d4cfb5" stroke-width="2"/>
+  <!-- 嘴部 -->
+  <path d="M320 100 L310 115 L320 120" fill="none" stroke="url(#bone1)" stroke-width="3"/>
+  <!-- 牙齿 -->
+  <path d="M305 118 L308 128 L311 118" fill="#f5f5dc" opacity="0.9"/>
+  <path d="M312 118 L315 127 L318 118" fill="#f5f5dc" opacity="0.9"/>
+  <!-- 颈椎 -->
+  <ellipse cx="250" cy="110" rx="15" ry="12" fill="url(#bone1)"/>
+  <ellipse cx="230" cy="120" rx="15" ry="12" fill="url(#bone1)"/>
+  <ellipse cx="210" cy="130" rx="15" ry="12" fill="url(#bone1)"/>
+  <!-- 脊椎 - 躯干 -->
+  <path d="M200 140 Q150 130 100 150 Q60 160 40 180" 
+        fill="none" stroke="url(#bone1)" stroke-width="8"/>
+  <!-- 脊椎骨细节 -->
+  <circle cx="180" cy="135" r="8" fill="#e8e4c9"/>
+  <circle cx="150" cy="135" r="8" fill="#e8e4c9"/>
+  <circle cx="120" cy="145" r="8" fill="#e8e4c9"/>
+  <circle cx="80" cy="160" r="7" fill="#e8e4c9"/>
+  <circle cx="55" cy="175" r="6" fill="#e8e4c9"/>
+  <!-- 肋骨 -->
+  <path d="M180 135 L170 180" stroke="url(#bone1)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M150 135 L140 190" stroke="url(#bone1)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M120 145 L110 195" stroke="url(#bone1)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M90 155 L80 190" stroke="url(#bone1)" stroke-width="3" stroke-linecap="round"/>
+  <!-- 前腿骨 -->
+  <path d="M100 170 L90 230" stroke="url(#bone1)" stroke-width="10" stroke-linecap="round"/>
+  <ellipse cx="90" cy="230" rx="12" ry="8" fill="#e8e4c9"/>
+  <!-- 后腿骨 -->
+  <path d="M50 190 L35 250" stroke="url(#bone1)" stroke-width="10" stroke-linecap="round"/>
+  <ellipse cx="35" cy="250" rx="12" ry="8" fill="#e8e4c9"/>
+  <!-- 尾巴 -->
+  <path d="M40 180 Q20 190 15 210 Q10 230 20 250" 
+        fill="none" stroke="url(#bone1)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="20" cy="250" r="6" fill="#e8e4c9"/>
+  <!-- 地面线 -->
+  <line x1="10" y1="260" x2="340" y2="260" stroke="#d4af37" stroke-width="1" opacity="0.3" stroke-dasharray="5,5"/>
+  <!-- 粒子 -->
+  <circle cx="30" cy="50" r="2" fill="#d4af37" opacity="0.4"/>
+  <circle cx="320" cy="40" r="1.5" fill="#ffffff" opacity="0.3"/>
+  <circle cx="300" cy="270" r="2" fill="#d4af37" opacity="0.3"/>
+  <circle cx="50" cy="280" r="1.5" fill="#ffffff" opacity="0.3"/>
+</svg>

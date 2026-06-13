@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgA2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c0aede;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9370db;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="50" fill="url(#bgA2)"/>
+  <!-- 脸部 -->
+  <ellipse cx="50" cy="55" rx="28" ry="32" fill="#ffe4c4"/>
+  <!-- 头发 - 学者发型 -->
+  <path d="M22 48 Q25 20 50 18 Q75 20 78 48 L76 38 Q70 25 50 23 Q30 25 24 38 Z" 
+        fill="#2d1f14"/>
+  <!-- 眼镜 -->
+  <circle cx="38" cy="52" r="12" fill="none" stroke="#2d1f14" stroke-width="3"/>
+  <circle cx="62" cy="52" r="12" fill="none" stroke="#2d1f14" stroke-width="3"/>
+  <line x1="50" y1="52" x2="50" y2="52" stroke="#2d1f14" stroke-width="3"/>
+  <path d="M26 52 L20 48" stroke="#2d1f14" stroke-width="2"/>
+  <path d="M74 52 L80 48" stroke="#2d1f14" stroke-width="2"/>
+  <!-- 眼睛 -->
+  <ellipse cx="38" cy="53" rx="3" ry="4" fill="#4a3728"/>
+  <ellipse cx="62" cy="53" rx="3" ry="4" fill="#4a3728"/>
+  <!-- 眉毛 -->
+  <path d="M30 42 Q38 40 46 42" fill="none" stroke="#2d1f14" stroke-width="2" stroke-linecap="round"/>
+  <path d="M54 42 Q62 40 70 42" fill="none" stroke="#2d1f14" stroke-width="2" stroke-linecap="round"/>
+  <!-- 鼻子 -->
+  <path d="M50 58 L48 68 Q50 70 52 68" fill="none" stroke="#d2b48c" stroke-width="2"/>
+  <!-- 嘴巴 - 微笑 -->
+  <path d="M40 75 Q50 80 60 75" fill="none" stroke="#8b0000" stroke-width="2" stroke-linecap="round"/>
+  <!-- 学者领结 -->
+  <path d="M40 85 L50 90 L60 85 L60 95 L50 90 L40 95 Z" fill="#4169e1"/>
+</svg>

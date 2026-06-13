@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 350">
+  <defs>
+    <linearGradient id="exbg7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1f14;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a100a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dressMain" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#dc143c;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#b22222;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b0000;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#c0c0c0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a8a8a8;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glow7" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#d4af37;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="300" height="350" fill="url(#exbg7)"/>
+  <ellipse cx="150" cy="175" rx="90" ry="120" fill="url(#glow7)"/>
+  <!-- 人体模型 -->
+  <!-- 头部 -->
+  <ellipse cx="150" cy="70" rx="25" ry="30" fill="#deb887"/>
+  <!-- 头发/头饰 -->
+  <ellipse cx="150" cy="55" rx="28" ry="20" fill="#1a0a00"/>
+  <path d="M130 65 Q150 45 170 65" fill="#1a0a00"/>
+  <!-- 银饰头饰 -->
+  <circle cx="150" cy="45" r="5" fill="url(#silver)"/>
+  <circle cx="135" cy="50" r="4" fill="url(#silver)"/>
+  <circle cx="165" cy="50" r="4" fill="url(#silver)"/>
+  <!-- 眼睛 -->
+  <ellipse cx="140" cy="70" rx="3" ry="2" fill="#2d1f14"/>
+  <ellipse cx="160" cy="70" rx="3" ry="2" fill="#2d1f14"/>
+  <!-- 嘴巴 -->
+  <path d="M145 85 Q150 88 155 85" fill="none" stroke="#8b0000" stroke-width="1.5"/>
+  <!-- 项圈 -->
+  <ellipse cx="150" cy="105" rx="30" ry="8" fill="url(#silver)" opacity="0.9"/>
+  <circle cx="150" cy="108" r="8" fill="url(#silver)"/>
+  <!-- 衣服领口 -->
+  <path d="M120 115 Q150 140 180 115 L180 130 Q150 150 120 130 Z" 
+        fill="#dc143c" opacity="0.9"/>
+  <!-- 衣服主体 -->
+  <path d="M100 130 L85 300 L215 300 L200 130 Q150 150 100 130 Z" 
+        fill="url(#dressMain)"/>
+  <!-- 衣服花纹 -->
+  <path d="M110 160 Q150 180 190 160" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.8"/>
+  <path d="M105 200 Q150 225 195 200" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.7"/>
+  <path d="M95 250 Q150 280 205 250" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.6"/>
+  <!-- 花纹装饰 -->
+  <g fill="#d4af37" opacity="0.7">
+    <circle cx="130" cy="170" r="4"/>
+    <circle cx="150" cy="165" r="5"/>
+    <circle cx="170" cy="170" r="4"/>
+    <circle cx="120" cy="220" r="3"/>
+    <circle cx="150" cy="210" r="4"/>
+    <circle cx="180" cy="220" r="3"/>
+  </g>
+  <!-- 腰带 -->
+  <rect x="95" y="240" width="110" height="12" fill="url(#silver)" opacity="0.9"/>
+  <rect x="142" y="238" width="16" height="16" fill="url(#silver)"/>
+  <!-- 袖子 -->
+  <ellipse cx="80" cy="180" rx="15" ry="40" fill="url(#dressMain)" transform="rotate(-10 80 180)"/>
+  <ellipse cx="220" cy="180" rx="15" ry="40" fill="url(#dressMain)" transform="rotate(10 220 180)"/>
+  <!-- 袖口装饰 -->
+  <ellipse cx="75" cy="215" rx="12" ry="5" fill="url(#silver)" opacity="0.8"/>
+  <ellipse cx="225" cy="215" rx="12" ry="5" fill="url(#silver)" opacity="0.8"/>
+  <!-- 耳环 -->
+  <circle cx="125" cy="80" r="4" fill="url(#silver)" opacity="0.9"/>
+  <circle cx="175" cy="80" r="4" fill="url(#silver)" opacity="0.9"/>
+  <!-- 粒子 -->
+  <circle cx="30" cy="50" r="2" fill="#d4af37" opacity="0.3"/>
+  <circle cx="270" cy="80" r="1.5" fill="#ffffff" opacity="0.3"/>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgA3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffdfbf;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffa07a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="50" fill="url(#bgA3)"/>
+  <!-- 脸部 -->
+  <ellipse cx="50" cy="55" rx="28" ry="32" fill="#ffd4a8"/>
+  <!-- 头发 - 艺术家长发 -->
+  <path d="M20 55 Q18 30 50 22 Q82 30 80 55 L78 70 Q80 50 50 45 Q20 50 22 70 Z" 
+        fill="#8b0000"/>
+  <!-- 贝雷帽 -->
+  <ellipse cx="50" cy="25" rx="28" ry="12" fill="#1a1a1a"/>
+  <circle cx="65" cy="20" r="5" fill="#1a1a1a"/>
+  <!-- 眼睛 -->
+  <ellipse cx="40" cy="55" rx="4" ry="5" fill="#2d1f14"/>
+  <ellipse cx="60" cy="55" rx="4" ry="5" fill="#2d1f14"/>
+  <circle cx="41" cy="54" r="1.5" fill="#ffffff"/>
+  <circle cx="61" cy="54" r="1.5" fill="#ffffff"/>
+  <!-- 睫毛 -->
+  <path d="M36 51 L34 48" stroke="#2d1f14" stroke-width="1.5"/>
+  <path d="M40 50 L40 47" stroke="#2d1f14" stroke-width="1.5"/>
+  <path d="M44 51 L46 48" stroke="#2d1f14" stroke-width="1.5"/>
+  <path d="M56 51 L54 48" stroke="#2d1f14" stroke-width="1.5"/>
+  <path d="M60 50 L60 47" stroke="#2d1f14" stroke-width="1.5"/>
+  <path d="M64 51 L66 48" stroke="#2d1f14" stroke-width="1.5"/>
+  <!-- 眉毛 -->
+  <path d="M33 47 Q40 45 47 47" fill="none" stroke="#8b0000" stroke-width="2" stroke-linecap="round"/>
+  <path d="M53 47 Q60 45 67 47" fill="none" stroke="#8b0000" stroke-width="2" stroke-linecap="round"/>
+  <!-- 鼻子 -->
+  <path d="M50 57 L48 67 Q50 69 52 67" fill="none" stroke="#e8b987" stroke-width="2"/>
+  <!-- 嘴巴 -->
+  <path d="M42 74 Q50 78 58 74" fill="#dc143c" stroke="#8b0000" stroke-width="1.5"/>
+  <!-- 画笔/调色板装饰 -->
+  <path d="M75 75 L90 60 L85 55 L70 70 Z" fill="#daa520"/>
+  <circle cx="78" cy="72" r="2" fill="#dc143c"/>
+  <circle cx="82" cy="68" r="2" fill="#4169e1"/>
+  <circle cx="85" cy="64" r="2" fill="#228b22"/>
+</svg>

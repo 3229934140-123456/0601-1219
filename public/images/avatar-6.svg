@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgA6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#cdf0e1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7dd8b0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="50" fill="url(#bgA6)"/>
+  <!-- 脸部 -->
+  <ellipse cx="50" cy="55" rx="28" ry="32" fill="#ffd4a8"/>
+  <!-- 头发 - 守护者发型 -->
+  <path d="M22 48 Q24 20 50 18 Q76 20 78 48 L76 38 Q70 26 50 24 Q30 26 24 38 Z" 
+        fill="#1a1a1a"/>
+  <!-- 发髻 -->
+  <circle cx="50" cy="18" r="10" fill="#1a1a1a"/>
+  <!-- 发簪 -->
+  <rect x="47" y="10" width="6" height="12" rx="2" fill="#d4af37"/>
+  <circle cx="50" cy="10" r="4" fill="#d4af37"/>
+  <!-- 眼睛 -->
+  <ellipse cx="40" cy="55" rx="4" ry="5" fill="#2d1f14"/>
+  <ellipse cx="60" cy="55" rx="4" ry="5" fill="#2d1f14"/>
+  <circle cx="41" cy="54" r="1.5" fill="#ffffff"/>
+  <circle cx="61" cy="54" r="1.5" fill="#ffffff"/>
+  <!-- 丹凤眼 -->
+  <path d="M35 55 Q38 52 45 55" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <path d="M55 55 Q62 52 65 55" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <!-- 眉毛 - 剑眉 -->
+  <path d="M32 45 Q40 43 47 46" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M53 46 Q60 43 68 45" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 鼻子 -->
+  <path d="M50 58 L48 68 Q50 70 52 68" fill="none" stroke="#e8b987" stroke-width="2"/>
+  <!-- 嘴巴 -->
+  <path d="M42 75 Q50 78 58 75" fill="none" stroke="#8b0000" stroke-width="2" stroke-linecap="round"/>
+  <!-- 汉服衣领 -->
+  <path d="M30 85 L50 95 L70 85 L72 100 L28 100 Z" fill="#2e8b57"/>
+  <path d="M45 90 L50 95 L55 90" fill="none" stroke="#d4af37" stroke-width="1.5"/>
+  <!-- 玉佩 -->
+  <circle cx="50" cy="90" r="4" fill="#90ee90"/>
+</svg>

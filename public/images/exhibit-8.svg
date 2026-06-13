@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <linearGradient id="exbg8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a2c0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d1b0a;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="goldCoin" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffb700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#daa520;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="glow8" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="300" height="300" fill="url(#exbg8)"/>
+  <circle cx="150" cy="150" r="100" fill="url(#glow8)"/>
+  <!-- 金币主体 -->
+  <circle cx="150" cy="150" r="80" fill="url(#goldCoin)"/>
+  <!-- 金币内圈图案 -->
+  <circle cx="150" cy="150" r="70" fill="none" stroke="#b8860b" stroke-width="2" opacity="0.6"/>
+  <circle cx="150" cy="150" r="60" fill="none" stroke="#b8860b" stroke-width="1" opacity="0.5"/>
+  <!-- 国王头像/侧面 -->
+  <ellipse cx="150" cy="140" rx="25" ry="30" fill="#b8860b" opacity="0.8"/>
+  <!-- 王冠 -->
+  <path d="M130 115 L135 105 L145 112 L150 100 L155 112 L165 105 L170 115 Z" 
+        fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+  <circle cx="150" cy="102" r="3" fill="#dc143c"/>
+  <circle cx="135" cy="108" r="2" fill="#4169e1"/>
+  <circle cx="165" cy="108" r="2" fill="#4169e1"/>
+  <!-- 脸部轮廓 -->
+  <path d="M130 125 Q130 150 150 155 Q170 150 170 125" 
+        fill="none" stroke="#8b6914" stroke-width="1.5" opacity="0.7"/>
+  <!-- 眼睛 -->
+  <ellipse cx="160" cy="135" rx="3" ry="2" fill="#6b5310"/>
+  <!-- 鼻子 -->
+  <path d="M162 140 L158 148" stroke="#8b6914" stroke-width="1.5"/>
+  <!-- 嘴巴 -->
+  <path d="M155 152 Q160 155 165 152" stroke="#6b5310" stroke-width="1.5" fill="none"/>
+  <!-- 胡子 -->
+  <path d="M145 155 L140 170 L160 170 L155 155" fill="#8b6914" opacity="0.6"/>
+  <!-- 衣领用 -->
+  <path d="M135 165 Q150 180 165 165 L168 175 Q150 190 132 175 Z" 
+        fill="#b8860b" opacity="0.5"/>
+  <!-- 金币文字 - 上下环绕 -->
+  <text x="150" y="85" text-anchor="middle" fill="#8b6914" font-size="12" font-weight="bold" font-family="serif">
+    丝路金币
+  </text>
+  <text x="150" y="225" text-anchor="middle" fill="#8b6914" font-size="10" font-family="serif">
+    唐代西域
+  </text>
+  <!-- 侧面装饰花纹 -->
+  <path d="M85 120 Q75 150 85 180" fill="none" stroke="#b8860b" stroke-width="2" opacity="0.5"/>
+  <path d="M215 120 Q225 150 215 180" fill="none" stroke="#b8860b" stroke-width="2" opacity="0.5"/>
+  <!-- 高光 -->
+  <ellipse cx="120" cy="110" rx="20" ry="10" fill="#ffffff" opacity="0.3" transform="rotate(-30 120 110)"/>
+  <!-- 底部花纹 -->
+  <path d="M130 200 Q150 195 170 200" fill="none" stroke="#8b6914" stroke-width="2" opacity="0.6"/>
+  <!-- 粒子 -->
+  <circle cx="50" cy="50" r="2" fill="#ffd700" opacity="0.5"/>
+  <circle cx="250" cy="60" r="1.5" fill="#ffffff" opacity="0.3"/>
+  <circle cx="260" cy="240" r="2" fill="#ffd700" opacity="0.4"/>
+  <circle cx="40" cy="250" r="1.5" fill="#ffffff" opacity="0.3"/>
+</svg>

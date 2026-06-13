@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 350">
+  <defs>
+    <linearGradient id="exbg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1f14;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a100a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="scroll1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f5e6d3;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e8d5b7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5e6d3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="350" fill="url(#exbg3)"/>
+  <!-- 画轴 -->
+  <rect x="40" y="50" width="220" height="250" fill="url(#scroll1)"/>
+  <!-- 轴杆 -->
+  <ellipse cx="40" cy="50" rx="8" ry="20" fill="#8b4513"/>
+  <rect x="32" y="50" width="16" height="250" fill="#a0522d"/>
+  <ellipse cx="40" cy="300" rx="8" ry="20" fill="#8b4513"/>
+  <ellipse cx="260" cy="50" rx="8" ry="20" fill="#8b4513"/>
+  <rect x="252" y="50" width="16" height="250" fill="#a0522d"/>
+  <ellipse cx="260" cy="300" rx="8" ry="20" fill="#8b4513"/>
+  <!-- 山水画 - 远山 -->
+  <path d="M60 120 Q80 90 100 110 Q120 80 140 100 Q160 70 180 95 Q200 75 220 100 Q235 90 245 110 L245 150 L60 150 Z" 
+        fill="#8b7355" opacity="0.4"/>
+  <!-- 中景山 -->
+  <path d="M70 170 Q90 140 110 160 Q130 130 150 155 Q170 135 190 160 Q210 145 230 165 L230 200 L70 200 Z" 
+        fill="#6b5344" opacity="0.6"/>
+  <!-- 近景山 -->
+  <path d="M80 230 Q100 200 130 220 Q160 190 190 215 Q210 200 230 225 L230 270 L80 270 Z" 
+        fill="#4a3728" opacity="0.8"/>
+  <!-- 树木 -->
+  <path d="M100 270 L100 250 Q95 240 100 230 Q105 240 100 250" 
+        stroke="#2d5016" stroke-width="3" fill="none"/>
+  <circle cx="100" cy="225" r="8" fill="#2d5016" opacity="0.8"/>
+  <path d="M180 270 L180 255 Q175 245 180 235 Q185 245 180 255" 
+        stroke="#3d6b1f" stroke-width="2" fill="none"/>
+  <circle cx="180" cy="230" r="6" fill="#3d6b1f" opacity="0.8"/>
+  <!-- 水面/云雾 -->
+  <ellipse cx="150" cy="280" rx="90" ry="8" fill="#ffffff" opacity="0.2"/>
+  <!-- 印章 -->
+  <rect x="220" y="80" width="20" height="20" fill="#dc143c" opacity="0.8"/>
+  <text x="230" y="95" text-anchor="middle" fill="#ffffff" font-size="10" font-family="serif">
+    画
+  </text>
+  <!-- 粒子 -->
+  <circle cx="30" cy="40" r="1.5" fill="#d4af37" opacity="0.4"/>
+  <circle cx="270" cy="320" r="1.5" fill="#d4af37" opacity="0.3"/>
+</svg>

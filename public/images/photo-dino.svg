@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="photoBg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1f2e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0d1a2d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a0f1a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#photoBg3)"/>
+  <!-- 恐龙骨架 -->
+  <!-- 头骨 -->
+  <ellipse cx="150" cy="250" rx="60" ry="40" fill="#d4af37" opacity="0.6"/>
+  <circle cx="130" cy="245" r="8" fill="#1a0f2e" opacity="0.5"/>
+  <!-- 脖子/脊椎 -->
+  <path d="M180 270 Q250 250 320 280 Q380 300 420 350" 
+        fill="none" stroke="#d4af37" stroke-width="20" opacity="0.5"/>
+  <!-- 身体 -->
+  <ellipse cx="380" cy="400" rx="120" ry="80" fill="#d4af37" opacity="0.4"/>
+  <!-- 腿 -->
+  <rect x="320" y="460" width="25" height="150" fill="#d4af37" opacity="0.5"/>
+  <rect x="420" y="460" width="25" height="150" fill="#d4af37" opacity="0.5"/>
+  <!-- 尾巴 -->
+  <path d="M480 400 Q540 420 580 500" 
+        fill="none" stroke="#d4af37" stroke-width="25" opacity="0.4"/>
+  <!-- 发光 -->
+  <ellipse cx="350" cy="400" rx="200" ry="250" fill="#4169e1" opacity="0.05"/>
+  <!-- 说明牌 -->
+  <rect x="50" y="500" width="100" height="70" rx="5" fill="#1a1a2e" opacity="0.8" stroke="#9370db" stroke-width="1"/>
+  <text x="100" y="525" text-anchor="middle" fill="#9370db" font-size="12">马门溪龙</text>
+  <text x="100" y="545" text-anchor="middle" fill="#8892a6" font-size="10">侏罗纪晚期</text>
+  <text x="100" y="560" text-anchor="middle" fill="#8892a6" font-size="9">长25米</text>
+  <!-- 地面 -->
+  <rect x="0" y="620" width="600" height="180" fill="#0a0f1a"/>
+  <!-- 文字 -->
+  <text x="300" y="720" text-anchor="middle" fill="#9370db" font-size="20" font-family="serif">
+    恐龙化石旁留影
+  </text>
+</svg>
