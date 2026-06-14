@@ -1,12 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin, Navigation, Flag, Crown, LogOut } from 'lucide-react';
+import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin, Navigation, Flag, Crown, LogOut, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
 import { friends, emojiActions, photoSpots } from '@/data/social';
 import { useAppStore } from '@/store/useAppStore';
 import { getHallById } from '@/data/halls';
+import { halls } from '@/data/halls';
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
+
+const hallIdMap: Record<string, string | null> = {
+  '古代文明厅': 'hall-1',
+  '艺术珍品厅': 'hall-2',
+  '自然科学厅': 'hall-3',
+  '数字未来厅': 'hall-4',
+  '民俗文化厅': 'hall-5',
+  '特展：丝路遗珍': 'hall-6',
+};
+
+const getFriendHallId = (friend: { currentHall?: string }): string | null => {
+  if (!friend.currentHall) return null;
+  return hallIdMap[friend.currentHall] || null;
+};
 
 const Multiplayer: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +36,9 @@ const Multiplayer: React.FC = () => {
   const [squadName, setSquadName] = useState('');
   const [showGatherModal, setShowGatherModal] = useState(false);
   const [gatherName, setGatherName] = useState('');
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [showFriendPicker, setShowFriendPicker] = useState(false);
+  const [friendPickerMode, setFriendPickerMode] = useState<'create' | 'invite'>('create');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const onlineFriends = friends.filter(f => f.isOnline);
@@ -113,25 +131,69 @@ const Multiplayer: React.FC = () => {
   };
 
   const handleCreateSquad = () => {
-    if (!squadName.trim() || !selectedFriend) {
+    if (!squadName.trim() || selectedFriends.length === 0) {
       return;
     }
-    const friendData = friends.find(f => f.id === selectedFriend);
+    const firstFriendId = selectedFriends[0];
+    const friendData = friends.find(f => f.id === firstFriendId);
     if (!friendData) return;
     
-    createSquad(squadName.trim(), selectedFriend, friendData.name, friendData.avatar);
+    createSquad(
+      squadName.trim(),
+      firstFriendId,
+      friendData.name,
+      friendData.avatar,
+      getFriendHallId(friendData)
+    );
+    
+    for (let i = 1; i < selectedFriends.length; i++) {
+      const f = friends.find(fr => fr.id === selectedFriends[i]);
+      if (f) {
+        joinSquad(f.id, f.name, f.avatar, getFriendHallId(f));
+      }
+    }
+    
     setShowCreateSquad(false);
     setShowInviteModal(false);
     setActiveTab('squad');
     setSquadName('');
-    setSelectedFriend(null);
+    setSelectedFriends([]);
   };
 
   const handleJoinSquad = (friendId: string) => {
     const friendData = friends.find(f => f.id === friendId);
     if (!friendData) return;
-    joinSquad(friendId, friendData.name, friendData.avatar);
-    setActiveTab('squad');
+    joinSquad(friendId, friendData.name, friendData.avatar, getFriendHallId(friendData));
+  };
+
+  const handleOpenFriendPicker = (mode: 'create' | 'invite') => {
+    setFriendPickerMode(mode);
+    setSelectedFriends([]);
+    setShowFriendPicker(true);
+  };
+
+  const handleFriendPickerConfirm = () => {
+    setShowFriendPicker(false);
+    if (friendPickerMode === 'create') {
+      if (selectedFriends.length > 0) {
+        const firstFriend = friends.find(f => f.id === selectedFriends[0]);
+        setSquadName(firstFriend ? `${user.nickname}和${firstFriend.name}的小队` : '我的小队');
+      }
+      setShowCreateSquad(true);
+    } else {
+      for (const fid of selectedFriends) {
+        handleJoinSquad(fid);
+      }
+      setSelectedFriends([]);
+    }
+  };
+
+  const toggleFriendSelection = (friendId: string) => {
+    setSelectedFriends(prev => 
+      prev.includes(friendId) 
+        ? prev.filter(id => id !== friendId)
+        : [...prev, friendId]
+    );
   };
 
   const handleLeaveSquad = () => {
@@ -489,7 +551,29 @@ const Multiplayer: React.FC = () => {
                           <Navigation size={16} className="text-teal animate-pulse" />
                           <span className="text-sm font-semibold text-teal">集合点</span>
                         </div>
-                        <p className="text-sm text-white">📍 {currentSquad.gatherPoint.name}</p>
+                        <p className="text-sm text-white mb-2">📍 {currentSquad.gatherPoint.name}</p>
+                        <div className="space-y-1.5">
+                          {currentSquad.members.map(member => {
+                            const memberHall = getHallName(member.currentHallId);
+                            const gatherHall = currentSquad.gatherPoint?.name || '';
+                            const isAtGatherPoint = memberHall === gatherHall || 
+                              (member.currentHallId && halls.find(h => h.id === member.currentHallId)?.name === gatherHall);
+                            return (
+                              <div key={member.friendId} className="flex items-center gap-2 text-xs">
+                                {isAtGatherPoint ? (
+                                  <span className="text-teal flex items-center gap-1">
+                                    <Check size={10} />
+                                    {member.name} 已到达集合点
+                                  </span>
+                                ) : (
+                                  <span className="text-text-secondary">
+                                    {member.name} 在 {memberHall}，请前往 {gatherHall} 汇合
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
 
@@ -504,7 +588,7 @@ const Multiplayer: React.FC = () => {
                           {currentSquad.gatherPoint ? '更新集合点' : '设置集合点'}
                         </button>
                         <button
-                          onClick={() => setShowCreateSquad(true)}
+                          onClick={() => handleOpenFriendPicker('invite')}
                           className="flex-1 btn-ghost flex items-center justify-center gap-2"
                         >
                           <UserPlus size={16} />
@@ -626,7 +710,7 @@ const Multiplayer: React.FC = () => {
                   创建小队，邀请好友一起探索博物馆
                 </p>
                 <button
-                  onClick={() => setShowCreateSquad(true)}
+                  onClick={() => handleOpenFriendPicker('create')}
                   className="btn-gold flex items-center gap-2"
                 >
                   <Flag size={18} />
@@ -697,10 +781,9 @@ const Multiplayer: React.FC = () => {
                 onClick={() => {
                   setShowInviteModal(false);
                   if (currentSquad && currentSquad.leaderId === 'me') {
-                    handleJoinSquad(selectedFriendData.id);
+                    handleOpenFriendPicker('invite');
                   } else {
-                    setSquadName(`${user.nickname}和${selectedFriendData.name}的小队`);
-                    setShowCreateSquad(true);
+                    handleOpenFriendPicker('create');
                   }
                 }}
                 className="btn-gold w-full"
@@ -799,7 +882,7 @@ const Multiplayer: React.FC = () => {
               </p>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-xs text-text-secondary mb-2">小队名称</label>
               <input
                 type="text"
@@ -810,28 +893,44 @@ const Multiplayer: React.FC = () => {
               />
             </div>
 
-            {selectedFriendData && (
+            {selectedFriends.length > 0 && (
               <div className="mb-6">
-                <p className="text-xs text-text-secondary mb-2">邀请成员</p>
-                <GlassCard className="p-3 flex items-center gap-3">
-                  <img
-                    src={selectedFriendData.avatar}
-                    alt={selectedFriendData.name}
-                    className="w-10 h-10 rounded-full"
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm text-white">{selectedFriendData.name}</p>
-                    <p className="text-xs text-green-500">在线</p>
-                  </div>
-                  <span className="text-xs text-gold">已选择</span>
-                </GlassCard>
+                <p className="text-xs text-text-secondary mb-2">
+                  邀请成员 ({selectedFriends.length})
+                </p>
+                <div className="space-y-2">
+                  {selectedFriends.map(fid => {
+                    const f = friends.find(fr => fr.id === fid);
+                    if (!f) return null;
+                    return (
+                      <GlassCard key={fid} className="p-3 flex items-center gap-3">
+                        <img
+                          src={f.avatar}
+                          alt={f.name}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm text-white">{f.name}</p>
+                          <p className="text-xs text-green-500">在线</p>
+                        </div>
+                        <span className="text-xs text-gold">已选择</span>
+                      </GlassCard>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
             <div className="space-y-3">
               <button
                 onClick={handleCreateSquad}
-                className="btn-gold w-full flex items-center justify-center gap-2"
+                disabled={!squadName.trim() || selectedFriends.length === 0}
+                className={cn(
+                  'w-full py-3 rounded-full font-semibold transition-all flex items-center justify-center gap-2',
+                  squadName.trim() && selectedFriends.length > 0
+                    ? 'btn-gold'
+                    : 'bg-glass text-text-muted cursor-not-allowed'
+                )}
               >
                 <Flag size={16} />
                 创建小队
@@ -840,8 +939,145 @@ const Multiplayer: React.FC = () => {
                 onClick={() => {
                   setShowCreateSquad(false);
                   setSquadName('');
-                  setSelectedFriend(null);
+                  setSelectedFriends([]);
                 }}
+                className="btn-ghost w-full"
+              >
+                取消
+              </button>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* 选择好友弹窗 */}
+      {showFriendPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => { setShowFriendPicker(false); setSelectedFriends([]); }}
+          />
+          <GlassCard className="relative w-full max-w-sm p-6 animate-slide-up max-h-[80vh] overflow-y-auto">
+            <button
+              onClick={() => { setShowFriendPicker(false); setSelectedFriends([]); }}
+              className="absolute top-4 right-4 text-text-secondary hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-4">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gold/20 flex items-center justify-center">
+                <UserPlus size={28} className="text-gold" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">
+                {friendPickerMode === 'create' ? '选择好友一起组队' : '邀请好友加入小队'}
+              </h3>
+              <p className="text-sm text-text-secondary">
+                {selectedFriends.length > 0 ? `已选择 ${selectedFriends.length} 人` : '点击好友即可选择'}
+              </p>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              {onlineFriends.map((friend) => {
+                const isSelected = selectedFriends.includes(friend.id);
+                const alreadyInSquad = currentSquad?.members.some(m => m.friendId === friend.id);
+                return (
+                  <button
+                    key={friend.id}
+                    onClick={() => !alreadyInSquad && toggleFriendSelection(friend.id)}
+                    disabled={!!alreadyInSquad}
+                    className={cn(
+                      'w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left',
+                      alreadyInSquad ? 'opacity-40 cursor-not-allowed' :
+                      isSelected ? 'bg-gold/20 border border-gold/50' : 'bg-glass hover:bg-glass-border'
+                    )}
+                  >
+                    <div className="relative">
+                      <img
+                        src={friend.avatar}
+                        alt={friend.name}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-space-dark" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white">{friend.name}</p>
+                      <p className="text-xs text-text-secondary flex items-center gap-1">
+                        <MapPin size={10} />
+                        {friend.currentHall || '漫游中'}
+                      </p>
+                    </div>
+                    {alreadyInSquad ? (
+                      <span className="text-[10px] text-text-muted">已在小队</span>
+                    ) : isSelected ? (
+                      <div className="w-6 h-6 rounded-full bg-gold flex items-center justify-center">
+                        <Check size={14} className="text-space-dark" />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full border border-glass-border" />
+                    )}
+                  </button>
+                );
+              })}
+              {offlineFriends.length > 0 && (
+                <>
+                  <p className="text-xs text-text-muted pt-2 pb-1">离线好友</p>
+                  {offlineFriends.map((friend) => {
+                    const isSelected = selectedFriends.includes(friend.id);
+                    const alreadyInSquad = currentSquad?.members.some(m => m.friendId === friend.id);
+                    return (
+                      <button
+                        key={friend.id}
+                        onClick={() => !alreadyInSquad && toggleFriendSelection(friend.id)}
+                        disabled={!!alreadyInSquad}
+                        className={cn(
+                          'w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left opacity-60',
+                          alreadyInSquad ? 'cursor-not-allowed' :
+                          isSelected ? 'bg-gold/20 border border-gold/50' : 'bg-glass hover:bg-glass-border'
+                        )}
+                      >
+                        <div className="relative">
+                          <img
+                            src={friend.avatar}
+                            alt={friend.name}
+                            className="w-10 h-10 rounded-full grayscale"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-text-secondary">{friend.name}</p>
+                          <p className="text-xs text-text-muted">离线</p>
+                        </div>
+                        {alreadyInSquad ? (
+                          <span className="text-[10px] text-text-muted">已在小队</span>
+                        ) : isSelected ? (
+                          <div className="w-6 h-6 rounded-full bg-gold flex items-center justify-center">
+                            <Check size={14} className="text-space-dark" />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full border border-glass-border" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleFriendPickerConfirm}
+                disabled={selectedFriends.length === 0}
+                className={cn(
+                  'w-full py-3 rounded-full font-semibold transition-all',
+                  selectedFriends.length > 0
+                    ? 'btn-gold'
+                    : 'bg-glass text-text-muted cursor-not-allowed'
+                )}
+              >
+                {friendPickerMode === 'create' ? '下一步：设置小队' : `邀请 ${selectedFriends.length} 人加入`}
+              </button>
+              <button
+                onClick={() => { setShowFriendPicker(false); setSelectedFriends([]); }}
                 className="btn-ghost w-full"
               >
                 取消
@@ -861,7 +1097,7 @@ const Multiplayer: React.FC = () => {
               setGatherName('');
             }}
           />
-          <GlassCard className="relative w-full max-w-sm p-6 animate-slide-up">
+          <GlassCard className="relative w-full max-w-sm p-6 animate-slide-up max-h-[80vh] overflow-y-auto">
             <button
               onClick={() => {
                 setShowGatherModal(false);
@@ -872,31 +1108,62 @@ const Multiplayer: React.FC = () => {
               <X size={20} />
             </button>
 
-            <div className="text-center mb-6">
+            <div className="text-center mb-4">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-teal/20 flex items-center justify-center">
                 <Navigation size={32} className="text-teal animate-pulse" />
               </div>
               <h3 className="text-lg font-bold text-white mb-1">设置集合点</h3>
               <p className="text-sm text-text-secondary">
-                通知小队成员在此处汇合
+                选择一个展厅作为集合地点
               </p>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-xs text-text-secondary mb-2">集合点名称</label>
-              <input
-                type="text"
-                value={gatherName}
-                onChange={(e) => setGatherName(e.target.value)}
-                placeholder="例如：古代文明厅入口"
-                className="w-full px-4 py-3 rounded-xl bg-glass border border-glass-border text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-gold/50 transition-colors"
-              />
+            <div className="space-y-2 mb-6">
+              {halls.map(hall => {
+                const isSelected = gatherName === hall.name;
+                const membersHere = currentSquad?.members.filter(m => m.currentHallId === hall.id) || [];
+                return (
+                  <button
+                    key={hall.id}
+                    onClick={() => setGatherName(hall.name)}
+                    className={cn(
+                      'w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left',
+                      isSelected ? 'bg-teal/20 border border-teal/50' : 'bg-glass hover:bg-glass-border'
+                    )}
+                  >
+                    <img
+                      src={hall.coverImage}
+                      alt={hall.name}
+                      className="w-10 h-10 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white">{hall.name}</p>
+                      <p className="text-xs text-text-secondary">
+                        {membersHere.length > 0 
+                          ? `${membersHere.map(m => m.name).join('、')} 在此` 
+                          : hall.theme}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-teal flex items-center justify-center">
+                        <Check size={14} className="text-space-dark" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="space-y-3">
               <button
                 onClick={handleSetGatherPoint}
-                className="btn-gold w-full flex items-center justify-center gap-2"
+                disabled={!gatherName.trim()}
+                className={cn(
+                  'w-full py-3 rounded-full font-semibold transition-all flex items-center justify-center gap-2',
+                  gatherName.trim()
+                    ? 'btn-gold'
+                    : 'bg-glass text-text-muted cursor-not-allowed'
+                )}
               >
                 <Navigation size={16} />
                 设置集合点

@@ -78,6 +78,8 @@ const GuideTasks: React.FC = () => {
     setShowResult(true);
     
     if (correct) {
+      completeTask(currentTask.id);
+
       if (currentTask.badgeId) {
         const badge = badges.find(b => b.id === currentTask.badgeId);
         if (badge) {
@@ -87,8 +89,6 @@ const GuideTasks: React.FC = () => {
             setShowBadgeModal(true);
           }, 1000);
         }
-      } else {
-        completeTask(currentTask.id);
       }
 
       if (currentRoute) {

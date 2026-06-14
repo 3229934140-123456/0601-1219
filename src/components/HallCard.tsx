@@ -13,7 +13,7 @@ const HallCard: React.FC<HallCardProps> = ({ hall, size = 'small' }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/map?hall=${hall.id}`);
+    navigate(`/hall/${hall.id}`);
   };
 
   return (

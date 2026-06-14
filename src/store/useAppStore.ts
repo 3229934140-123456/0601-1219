@@ -37,8 +37,8 @@ interface AppState {
   addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => void;
   markNotificationRead: (notificationId: string) => void;
   markAllNotificationsRead: () => void;
-  createSquad: (name: string, friendId: string, friendName: string, friendAvatar: string) => void;
-  joinSquad: (friendId: string, friendName: string, friendAvatar: string) => void;
+  createSquad: (name: string, friendId: string, friendName: string, friendAvatar: string, friendHallId?: string | null) => void;
+  joinSquad: (friendId: string, friendName: string, friendAvatar: string, friendHallId?: string | null) => void;
   leaveSquad: () => void;
   setSquadGatherPoint: (x: number, y: number, name: string) => void;
   updateSquadMemberLocation: (friendId: string, hallId: string | null) => void;
@@ -388,7 +388,7 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      createSquad: (name, friendId, friendName, friendAvatar) => {
+      createSquad: (name, friendId, friendName, friendAvatar, friendHallId) => {
         const newSquad: Squad = {
           id: `squad-${Date.now()}`,
           name,
@@ -406,7 +406,7 @@ export const useAppStore = create<AppState>()(
               friendId,
               name: friendName,
               avatar: friendAvatar,
-              currentHallId: null,
+              currentHallId: friendHallId || null,
               isOnline: true,
               joinedAt: Date.now(),
             },
@@ -431,7 +431,7 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      joinSquad: (friendId, friendName, friendAvatar) => {
+      joinSquad: (friendId, friendName, friendAvatar, friendHallId) => {
         const { squad } = get().user;
         if (!squad) return;
         
@@ -439,7 +439,7 @@ export const useAppStore = create<AppState>()(
           friendId,
           name: friendName,
           avatar: friendAvatar,
-          currentHallId: null,
+          currentHallId: friendHallId || null,
           isOnline: true,
           joinedAt: Date.now(),
         };

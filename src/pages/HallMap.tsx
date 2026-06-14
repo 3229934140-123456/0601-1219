@@ -21,7 +21,7 @@ const HallMap: React.FC = () => {
   });
 
   const handleHallClick = (hallId: string) => {
-    navigate(`/map?hall=${hallId}`);
+    navigate(`/hall/${hallId}`);
   };
 
   const handleEnterHall = (hallId: string) => {
