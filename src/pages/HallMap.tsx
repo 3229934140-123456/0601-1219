@@ -3,6 +3,7 @@ import { MapPin, Navigation, Layers, Search, ChevronDown } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
 import { halls, hallCategories } from '@/data/halls';
+import { getExhibitsByHall } from '@/data/exhibits';
 import { cn } from '@/lib/utils';
 
 const HallMap: React.FC = () => {
@@ -24,7 +25,12 @@ const HallMap: React.FC = () => {
   };
 
   const handleEnterHall = (hallId: string) => {
-    navigate(`/exhibit/exhibit-1`);
+    const hallExhibits = getExhibitsByHall(hallId);
+    if (hallExhibits.length > 0) {
+      navigate(`/exhibit/${hallExhibits[0].id}?hall=${hallId}`);
+    } else {
+      navigate(`/exhibit/exhibit-1?hall=${hallId}`);
+    }
   };
 
   return (

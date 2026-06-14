@@ -1,34 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
-import { friends, emojiActions, mockMessages, photoSpots } from '@/data/social';
+import { friends, emojiActions, photoSpots } from '@/data/social';
 import { useAppStore } from '@/store/useAppStore';
+import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 
 const Multiplayer: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAppStore();
+  const { user, addChatMessage, getChatMessages } = useAppStore();
   const [activeTab, setActiveTab] = useState<'friends' | 'chat'>('friends');
   const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
   const [chatMessage, setChatMessage] = useState('');
   const [showEmojis, setShowEmojis] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPhotoSpot, setShowPhotoSpot] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const onlineFriends = friends.filter(f => f.isOnline);
   const offlineFriends = friends.filter(f => !f.isOnline);
 
   const selectedFriendData = friends.find(f => f.id === selectedFriend);
+  const currentMessages = selectedFriend ? getChatMessages(selectedFriend) : [];
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentMessages.length]);
+
+  const autoReplies = [
+    '好的！我也想去看看~',
+    '太厉害了！',
+    '这个展品真的很精美',
+    '我们一起去下个展厅吧',
+    '哈哈，我刚也看到了',
+    '你发现了什么好玩的？',
+    '等我一下，我马上过来',
+  ];
 
   const handleSendMessage = () => {
-    if (!chatMessage.trim()) return;
+    if (!chatMessage.trim() || !selectedFriend) return;
+    
+    const newMessage: Message = {
+      id: `msg-${Date.now()}`,
+      senderId: 'me',
+      content: chatMessage.trim(),
+      type: emojiActions.some(e => e.emoji === chatMessage.trim()) ? 'emoji' : 'text',
+      timestamp: Date.now(),
+    };
+    
+    addChatMessage(selectedFriend, newMessage);
     setChatMessage('');
     setShowEmojis(false);
+
+    setTimeout(() => {
+      const reply: Message = {
+        id: `msg-${Date.now()}-reply`,
+        senderId: selectedFriend,
+        content: autoReplies[Math.floor(Math.random() * autoReplies.length)],
+        type: 'text',
+        timestamp: Date.now(),
+      };
+      addChatMessage(selectedFriend, reply);
+    }, 1000 + Math.random() * 1500);
   };
 
   const handleEmoji = (emoji: string) => {
-    setChatMessage(prev => prev + emoji);
+    if (!selectedFriend) return;
+    const newMessage: Message = {
+      id: `msg-${Date.now()}`,
+      senderId: 'me',
+      content: emoji,
+      type: 'emoji',
+      timestamp: Date.now(),
+    };
+    addChatMessage(selectedFriend, newMessage);
+    
+    setTimeout(() => {
+      const reply: Message = {
+        id: `msg-${Date.now()}-reply`,
+        senderId: selectedFriend,
+        content: emojiActions[Math.floor(Math.random() * emojiActions.length)].emoji,
+        type: 'emoji',
+        timestamp: Date.now(),
+      };
+      addChatMessage(selectedFriend, reply);
+    }, 800 + Math.random() * 1000);
   };
 
   const handleInvite = (friendId: string) => {
@@ -236,7 +295,7 @@ const Multiplayer: React.FC = () => {
 
                 {/* 消息列表 */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {mockMessages.map((msg) => {
+                  {currentMessages.map((msg) => {
                     const isMe = msg.senderId === 'me';
                     return (
                       <div
@@ -273,6 +332,7 @@ const Multiplayer: React.FC = () => {
                       </div>
                     );
                   })}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* 输入框 */}

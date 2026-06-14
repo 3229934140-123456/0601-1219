@@ -16,6 +16,7 @@ const PhotoShare: React.FC = () => {
   const [filterIndex, setFilterIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   const filters = [
     { name: '原图', class: '' },
@@ -26,6 +27,11 @@ const PhotoShare: React.FC = () => {
   ];
 
   const stickers = ['🏛️', '🎨', '✨', '💎', '🦕', '🏺', '📜', '🖼️'];
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 2500);
+  };
 
   const handleTakePhoto = () => {
     const photoMap: Record<string, string> = {
@@ -42,9 +48,25 @@ const PhotoShare: React.FC = () => {
   const handleSavePhoto = () => {
     if (photoTaken) {
       const photoId = `photo-${Date.now()}`;
-      addPhoto(photoId, photoTaken, selectedSpot.name + '留影', selectedSpot.name);
+      addPhoto(photoId, photoTaken, selectedSpot.name + '留影', selectedSpot.name, { type: 'photo' });
       setShowShareModal(true);
+      showToast('照片已保存到相册');
     }
+  };
+
+  const handleSavePostcard = () => {
+    if (!postcardText.trim()) {
+      showToast('请输入明信片寄语', 'error');
+      return;
+    }
+    const photoId = `postcard-${Date.now()}`;
+    addPhoto(photoId, '/images/hall-special.svg', '我的明信片', selectedTemplate.name, {
+      type: 'postcard',
+      templateColor: selectedTemplate.color,
+      text: postcardText,
+    });
+    setShowShareModal(true);
+    showToast('明信片已保存到相册');
   };
 
   const handleReset = () => {
@@ -345,12 +367,14 @@ const PhotoShare: React.FC = () => {
 
             {/* 操作按钮 */}
             <div className="flex gap-3 mb-8">
-              <button className="flex-1 btn-ghost flex items-center justify-center gap-2">
+              <button 
+                onClick={handleSavePostcard}
+                className="flex-1 btn-ghost flex items-center justify-center gap-2">
                 <Download size={16} />
                 保存
               </button>
               <button 
-                onClick={() => setShowShareModal(true)}
+                onClick={() => { handleSavePostcard(); setShowShareModal(true); }}
                 className="flex-1 btn-gold flex items-center justify-center gap-2"
               >
                 <Send size={16} />
@@ -366,14 +390,24 @@ const PhotoShare: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 {user.photos.map((photo) => (
                   <GlassCard key={photo.id} className="overflow-hidden">
-                    <img 
-                      src={photo.image} 
-                      alt={photo.title}
-                      className="w-full h-32 object-cover"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={photo.image} 
+                        alt={photo.title}
+                        className="w-full h-32 object-cover"
+                      />
+                      {photo.type === 'postcard' && (
+                        <span className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-gold/90 text-space-dark font-medium">
+                          明信片
+                        </span>
+                      )}
+                    </div>
                     <div className="p-2">
                       <p className="text-xs text-white truncate">{photo.title}</p>
                       <p className="text-[10px] text-text-muted">{photo.location}</p>
+                      {photo.text && (
+                        <p className="text-[10px] text-text-secondary mt-1 line-clamp-1 italic">"{photo.text}"</p>
+                      )}
                     </div>
                   </GlassCard>
                 ))}
@@ -384,7 +418,7 @@ const PhotoShare: React.FC = () => {
                   <Image size={32} className="text-text-muted" />
                 </div>
                 <p className="text-text-secondary mb-2">相册是空的</p>
-                <p className="text-text-muted text-sm mb-4">去拍一些美照吧</p>
+                <p className="text-text-muted text-sm mb-4">去拍一些美照或制作明信片吧</p>
                 <button
                   onClick={() => setMode('camera')}
                   className="btn-gold"
@@ -445,6 +479,16 @@ const PhotoShare: React.FC = () => {
               取消
             </button>
           </GlassCard>
+        </div>
+      )}
+
+      {/* Toast 提示 */}
+      {toast.show && (
+        <div className={cn(
+          'fixed top-20 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-xl text-sm font-medium shadow-lg animate-slide-down',
+          toast.type === 'success' ? 'bg-teal text-white' : 'bg-red-500 text-white'
+        )}>
+          {toast.message}
         </div>
       )}
     </div>

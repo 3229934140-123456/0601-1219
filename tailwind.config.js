@@ -37,6 +37,8 @@ export default {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
+        'slide-down': 'slideDown 0.4s ease-out',
+        'slide-in': 'slideIn 0.3s ease-out',
         'breathe': 'breathe 3s ease-in-out infinite',
         'rotate-slow': 'rotate 20s linear infinite',
       },
@@ -56,6 +58,14 @@ export default {
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideDown: {
+          '0%': { opacity: '0', transform: 'translate(-50%, -20px)' },
+          '100%': { opacity: '1', transform: 'translate(-50%, 0)' },
+        },
+        slideIn: {
+          '0%': { opacity: '0', transform: 'translateX(100%)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         breathe: {
           '0%, 100%': { transform: 'scale(1)', opacity: '1' },

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UserData, UserSettings } from '@/types';
+import type { UserData, UserSettings, Message, Feedback, Reservation, Photo } from '@/types';
+import { mockMessages } from '@/data/social';
 
 interface AppState {
   user: UserData;
@@ -22,10 +23,14 @@ interface AppState {
   addVisitDuration: (seconds: number) => void;
   setAvatar: (avatarId: string) => void;
   setNickname: (nickname: string) => void;
-  addPhoto: (photoId: string, image: string, title: string, location: string) => void;
+  addPhoto: (photoId: string, image: string, title: string, location: string, extra?: Partial<Photo>) => void;
   setShowAvatarSelector: (show: boolean) => void;
   togglePlay: (audioId?: string) => void;
   setPlaybackProgress: (progress: number) => void;
+  addChatMessage: (friendId: string, message: Message) => void;
+  getChatMessages: (friendId: string) => Message[];
+  addReservation: (reservation: Omit<Reservation, 'id' | 'status'>) => void;
+  addFeedback: (feedback: Omit<Feedback, 'id' | 'createdAt' | 'status'>) => void;
 }
 
 const initialSettings: UserSettings = {
@@ -56,6 +61,13 @@ const initialUser: UserData = {
   photos: [],
   settings: initialSettings,
   selectedAvatar: 'avatar-1',
+  chats: [
+    {
+      friendId: 'friend-1',
+      messages: [...mockMessages],
+    },
+  ],
+  feedbacks: [],
 };
 
 export const useAppStore = create<AppState>()(
@@ -153,12 +165,12 @@ export const useAppStore = create<AppState>()(
         });
       },
       
-      addPhoto: (photoId, image, title, location) => {
+      addPhoto: (photoId, image, title, location, extra) => {
         set({
           user: {
             ...get().user,
             photos: [
-              { id: photoId, image, title, createdAt: Date.now(), location },
+              { id: photoId, image, title, createdAt: Date.now(), location, ...extra },
               ...get().user.photos,
             ],
           },
@@ -177,6 +189,63 @@ export const useAppStore = create<AppState>()(
       },
       
       setPlaybackProgress: (progress) => set({ playbackProgress: progress }),
+
+      addChatMessage: (friendId, message) => {
+        const { chats } = get().user;
+        const existingChat = chats.find(c => c.friendId === friendId);
+        
+        let newChats;
+        if (existingChat) {
+          newChats = chats.map(c => 
+            c.friendId === friendId 
+              ? { ...c, messages: [...c.messages, message] }
+              : c
+          );
+        } else {
+          newChats = [...chats, { friendId, messages: [message] }];
+        }
+        
+        set({
+          user: {
+            ...get().user,
+            chats: newChats,
+          },
+        });
+      },
+
+      getChatMessages: (friendId) => {
+        const chat = get().user.chats.find(c => c.friendId === friendId);
+        return chat ? chat.messages : [];
+      },
+
+      addReservation: (reservation) => {
+        const newReservation: Reservation = {
+          ...reservation,
+          id: `res-${Date.now()}`,
+          status: 'pending',
+        };
+        set({
+          user: {
+            ...get().user,
+            reservations: [newReservation, ...get().user.reservations],
+          },
+        });
+      },
+
+      addFeedback: (feedback) => {
+        const newFeedback: Feedback = {
+          ...feedback,
+          id: `fb-${Date.now()}`,
+          createdAt: Date.now(),
+          status: 'pending',
+        };
+        set({
+          user: {
+            ...get().user,
+            feedbacks: [newFeedback, ...get().user.feedbacks],
+          },
+        });
+      },
     }),
     {
       name: 'museum-app-storage',

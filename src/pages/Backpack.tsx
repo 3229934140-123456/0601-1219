@@ -13,17 +13,19 @@ import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 
 const Backpack: React.FC = () => {
-  const { user, updateSettings } = useAppStore();
+  const { user, updateSettings, addReservation, addFeedback, setNickname } = useAppStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'badges' | 'records' | 'settings'>('overview');
   const [showSettings, setShowSettings] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showReservation, setShowReservation] = useState(false);
+  const [showFeedbackList, setShowFeedbackList] = useState(false);
   const [feedbackType, setFeedbackType] = useState('');
   const [feedbackDesc, setFeedbackDesc] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [tempNickname, setTempNickname] = useState(user.nickname);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   const collectedExhibits = exhibits.filter(e => user.collectedExhibits.includes(e.id));
   const userBadges = badges.map(b => ({
@@ -40,19 +42,47 @@ const Backpack: React.FC = () => {
     return `${minutes}分钟`;
   };
 
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 2500);
+  };
+
   const handleSaveNickname = () => {
-    // 简化处理，直接保存
+    setNickname(tempNickname);
     setEditingName(false);
+    showToast('昵称修改成功');
   };
 
   const handleSubmitFeedback = () => {
+    if (!feedbackType || !feedbackDesc.trim()) {
+      showToast('请填写反馈类型和描述', 'error');
+      return;
+    }
+    const typeLabel = feedbackTypes.find(t => t.id === feedbackType)?.label || feedbackType;
+    addFeedback({
+      type: typeLabel,
+      description: feedbackDesc.trim(),
+    });
     setShowFeedback(false);
     setFeedbackType('');
     setFeedbackDesc('');
+    showToast('反馈提交成功，我们会尽快处理');
   };
 
   const handleReservation = () => {
+    if (!selectedDate || !selectedTime) {
+      showToast('请选择日期和时间', 'error');
+      return;
+    }
+    addReservation({
+      type: 'offline_guide',
+      date: selectedDate,
+      time: selectedTime,
+    });
     setShowReservation(false);
+    setSelectedDate('');
+    setSelectedTime('');
+    showToast('预约提交成功，等待确认');
   };
 
   const menuItems = [
@@ -239,12 +269,20 @@ const Backpack: React.FC = () => {
                   <MessageSquare size={18} className="text-teal" />
                   问题反馈
                 </h3>
-                <button 
-                  onClick={() => setShowFeedback(true)}
-                  className="text-xs text-gold"
-                >
-                  提交反馈
-                </button>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setShowFeedbackList(true)}
+                    className="text-xs text-text-secondary hover:text-white"
+                  >
+                    历史记录 ({user.feedbacks.length})
+                  </button>
+                  <button 
+                    onClick={() => setShowFeedback(true)}
+                    className="text-xs text-gold"
+                  >
+                    提交反馈
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button className="glass-card p-4 flex flex-col items-center gap-2 hover:border-gold/30 transition-colors">
@@ -256,6 +294,32 @@ const Backpack: React.FC = () => {
                   <span className="text-xs text-white">意见建议</span>
                 </button>
               </div>
+              {user.feedbacks.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {user.feedbacks.slice(0, 2).map((fb) => (
+                    <GlassCard key={fb.id} className="p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gold/20 text-gold">
+                          {fb.type}
+                        </span>
+                        <span className={cn(
+                          'text-[10px] px-2 py-0.5 rounded-full',
+                          fb.status === 'resolved' ? 'bg-teal/20 text-teal' :
+                          fb.status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-gold/20 text-gold'
+                        )}>
+                          {fb.status === 'resolved' ? '已解决' :
+                           fb.status === 'processing' ? '处理中' : '待处理'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-text-secondary line-clamp-2">{fb.description}</p>
+                      <p className="text-[10px] text-text-muted mt-1">
+                        {new Date(fb.createdAt).toLocaleString('zh-CN')}
+                      </p>
+                    </GlassCard>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 其他设置 */}
@@ -396,6 +460,70 @@ const Backpack: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 反馈历史弹窗 */}
+      {showFeedbackList && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowFeedbackList(false)}
+          />
+          <GlassCard className="relative w-full max-w-sm max-h-[70vh] flex flex-col animate-slide-up">
+            <div className="flex items-center justify-between p-4 border-b border-glass-border">
+              <h3 className="text-lg font-bold text-white">反馈历史</h3>
+              <button 
+                onClick={() => setShowFeedbackList(false)}
+                className="text-text-secondary hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto">
+              {user.feedbacks.length > 0 ? (
+                <div className="space-y-3">
+                  {user.feedbacks.map((fb) => (
+                    <GlassCard key={fb.id} className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gold/20 text-gold font-medium">
+                          {fb.type}
+                        </span>
+                        <span className={cn(
+                          'text-[10px] px-2 py-0.5 rounded-full',
+                          fb.status === 'resolved' ? 'bg-teal/20 text-teal' :
+                          fb.status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
+                          'bg-gold/20 text-gold'
+                        )}>
+                          {fb.status === 'resolved' ? '已解决' :
+                           fb.status === 'processing' ? '处理中' : '待处理'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-white mb-2">{fb.description}</p>
+                      <p className="text-[10px] text-text-muted">
+                        {new Date(fb.createdAt).toLocaleString('zh-CN')}
+                      </p>
+                    </GlassCard>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <MessageSquare size={40} className="text-text-muted mb-3" />
+                  <p className="text-text-secondary text-sm">暂无反馈记录</p>
+                </div>
+              )}
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* Toast 提示 */}
+      {toast.show && (
+        <div className={cn(
+          'fixed top-20 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-xl text-sm font-medium shadow-lg animate-slide-down',
+          toast.type === 'success' ? 'bg-teal text-white' : 'bg-red-500 text-white'
+        )}>
+          {toast.message}
+        </div>
+      )}
 
       {/* 设置弹窗 */}
       {showSettings && (

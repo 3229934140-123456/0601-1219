@@ -71,6 +71,9 @@ export interface Photo {
   title: string;
   createdAt: number;
   location: string;
+  type?: 'photo' | 'postcard';
+  templateColor?: string;
+  text?: string;
 }
 
 export interface Reservation {
@@ -89,6 +92,11 @@ export interface UserSettings {
   autoplayAudio: boolean;
 }
 
+export interface ChatSession {
+  friendId: string;
+  messages: Message[];
+}
+
 export interface UserData {
   avatar: string;
   nickname: string;
@@ -101,6 +109,8 @@ export interface UserData {
   photos: Photo[];
   settings: UserSettings;
   selectedAvatar: string;
+  chats: ChatSession[];
+  feedbacks: Feedback[];
 }
 
 export interface AvatarOption {
