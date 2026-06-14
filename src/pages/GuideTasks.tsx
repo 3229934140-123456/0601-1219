@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Target, BookOpen, Calendar, Trophy, ChevronRight, X, Check, Clock, Star, MapPin, Navigation, Route, Flag } from 'lucide-react';
+import { Target, BookOpen, Calendar, Trophy, ChevronRight, X, Check, Clock, Star, MapPin, Navigation, Route, Flag, ArrowLeft, Award } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
 import ProgressBar from '@/components/ProgressBar';
 import BadgeItem from '@/components/BadgeItem';
 import { tasks, badges, getTaskById } from '@/data/tasks';
 import { tourRoutes, getRouteById } from '@/data/routes';
-import { getExhibitById } from '@/data/exhibits';
+import { getExhibitById, getExhibitsByHall } from '@/data/exhibits';
 import { getHallById } from '@/data/halls';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
@@ -27,10 +27,12 @@ const GuideTasks: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState<string | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [showRouteDetail, setShowRouteDetail] = useState(false);
+  const [showRouteSummary, setShowRouteSummary] = useState(false);
 
   const currentRouteId = user.currentRouteId || routeParam;
   const currentRoute = currentRouteId ? getRouteById(currentRouteId) : null;
-  const currentRouteProgress = user.routeProgress;
+  const currentRouteProgress = Math.min(user.routeProgress, currentRoute?.exhibitIds.length ?? 0);
 
   useEffect(() => {
     if (routeParam && !user.currentRouteId) {
@@ -62,6 +64,19 @@ const GuideTasks: React.FC = () => {
         }))
     : [];
 
+  const isRouteCompleted = currentRoute
+    ? currentRoute.exhibitIds.every(eid => {
+        const task = tasks.find(t => t.exhibitId === eid);
+        return task ? user.completedTasks.includes(task.id) : true;
+      })
+    : false;
+
+  useEffect(() => {
+    if (isRouteCompleted && currentRoute && !showRouteSummary) {
+      setShowRouteSummary(true);
+    }
+  }, [isRouteCompleted, currentRoute]);
+
   const handleStartQuiz = (task: Task) => {
     if (user.completedTasks.includes(task.id)) return;
     setCurrentTask(task);
@@ -91,47 +106,48 @@ const GuideTasks: React.FC = () => {
         }
       }
 
-      if (currentRoute) {
-        advanceRouteProgress();
+      if (currentRoute && currentTask.exhibitId) {
+        advanceRouteProgress(currentTask.exhibitId);
       }
     }
   };
 
   const handleSelectRoute = (routeId: string) => {
     setSelectedRouteId(routeId);
+    setShowRouteDetail(true);
   };
 
-  const handleStartRoute = () => {
-    if (!selectedRouteId) return;
-    setCurrentRoute(selectedRouteId);
-    const route = getRouteById(selectedRouteId);
+  const handleStartRoute = (routeId: string) => {
+    setCurrentRoute(routeId);
+    const route = getRouteById(routeId);
     if (route && route.hallIds.length > 0) {
       const firstHallId = route.hallIds[0];
-      navigate(`/hall/${firstHallId}?fromRoute=${selectedRouteId}&step=1`);
+      navigate(`/hall/${firstHallId}?fromRoute=${routeId}&step=1`);
     }
     setSelectedRouteId(null);
+    setShowRouteDetail(false);
     setActiveRouteTab('tasks');
   };
 
   const handleContinueRoute = () => {
     if (!currentRoute) return;
     const nextIndex = currentRouteProgress;
-    if (nextIndex < currentRoute.hallIds.length) {
-      const nextHallId = currentRoute.hallIds[nextIndex];
-      navigate(`/hall/${nextHallId}?fromRoute=${currentRoute.id}&step=${nextIndex + 1}`);
+    if (nextIndex < currentRoute.exhibitIds.length) {
+      const nextExhibitId = currentRoute.exhibitIds[nextIndex];
+      const nextExhibit = getExhibitById(nextExhibitId);
+      if (nextExhibit) {
+        navigate(`/exhibit/${nextExhibitId}?fromRoute=${currentRoute.id}&step=${nextIndex + 1}`);
+      } else {
+        const hallIndex = Math.min(nextIndex, currentRoute.hallIds.length - 1);
+        const nextHallId = currentRoute.hallIds[hallIndex];
+        navigate(`/hall/${nextHallId}?fromRoute=${currentRoute.id}&step=${nextIndex + 1}`);
+      }
     }
   };
 
-  const handleViewRouteProgress = () => {
-    setActiveRouteTab('tasks');
-  };
-
-  const getCurrentRouteStep = () => {
-    if (!currentRoute) return null;
-    const stepIndex = Math.min(currentRouteProgress, currentRoute.hallIds.length - 1);
-    const hallId = currentRoute.hallIds[stepIndex];
-    const hall = getHallById(hallId);
-    return hall ? { index: stepIndex + 1, hall } : null;
+  const handleFinishRoute = () => {
+    setShowRouteSummary(false);
+    setCurrentRoute(null);
   };
 
   const closeQuiz = () => {
@@ -145,17 +161,110 @@ const GuideTasks: React.FC = () => {
     { id: 'daily', label: '每日任务', icon: Calendar },
   ];
 
+  if (showRouteSummary && currentRoute) {
+    const completedTasksInRoute = routeTasks.filter(t => t.isCompleted);
+    const earnedBadges = routeTasks
+      .filter(t => t.isCompleted && t.badgeId)
+      .map(t => badges.find(b => b.id === t.badgeId))
+      .filter((b): b is typeof badges[0] => !!b);
+
+    return (
+      <div className="page-container">
+        <div className="stars-bg opacity-30" />
+        <div className="page-content flex flex-col items-center justify-center px-4 py-8">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold to-gold-dark p-1 mb-6 animate-pulse-glow">
+            <div className="w-full h-full rounded-full bg-space-dark flex items-center justify-center">
+              <Trophy size={40} className="text-gold" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gold-gradient mb-2">路线完成！</h2>
+          <p className="text-lg font-semibold text-white mb-1">{currentRoute.name}</p>
+          <p className="text-sm text-text-secondary mb-6">
+            {currentRoute.description}
+          </p>
+
+          <GlassCard className="w-full p-4 mb-4">
+            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+              <Check size={16} className="text-teal" />
+              完成统计
+            </h3>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-xl font-bold text-gold">{completedTasksInRoute.length}/{routeTasks.length}</p>
+                <p className="text-[10px] text-text-muted">答题完成</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-teal">{currentRoute.hallIds.length}</p>
+                <p className="text-[10px] text-text-muted">展厅探索</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-purple-400">{currentRoute.estimatedTime}′</p>
+                <p className="text-[10px] text-text-muted">预计用时</p>
+              </div>
+            </div>
+          </GlassCard>
+
+          {earnedBadges.length > 0 && (
+            <GlassCard className="w-full p-4 mb-4">
+              <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <Award size={16} className="text-gold" />
+                获得纪念章
+              </h3>
+              <div className="flex gap-3 justify-center">
+                {earnedBadges.map(badge => (
+                  <BadgeItem key={badge.id} badge={{ ...badge, isUnlocked: true }} size="small" />
+                ))}
+              </div>
+            </GlassCard>
+          )}
+
+          <GlassCard className="w-full p-4 mb-6">
+            <h3 className="text-sm font-semibold text-white mb-3">路线足迹</h3>
+            <div className="space-y-2">
+              {currentRoute.exhibitIds.map((eid, idx) => {
+                const exhibit = getExhibitById(eid);
+                const task = routeTasks.find(t => t.exhibitId === eid);
+                const done = task?.isCompleted ?? false;
+                return (
+                  <div key={eid} className="flex items-center gap-3 text-xs">
+                    <div className={cn(
+                      'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
+                      done ? 'bg-teal/20 text-teal' : 'bg-glass text-text-muted'
+                    )}>
+                      {done ? <Check size={12} /> : idx + 1}
+                    </div>
+                    <span className={cn('flex-1', done ? 'text-text-secondary' : 'text-text-muted')}>
+                      {exhibit?.name ?? `展品 ${idx + 1}`}
+                    </span>
+                    {done && <span className="text-teal text-[10px]">已完成</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+
+          <div className="w-full space-y-3">
+            <button onClick={() => navigate('/camera')} className="btn-gold w-full flex items-center justify-center gap-2">
+              📸 拍照留念
+            </button>
+            <button onClick={handleFinishRoute} className="btn-ghost w-full">
+              返回任务中心
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <div className="stars-bg opacity-30" />
       
-      {/* 顶部栏 */}
       <header className="relative z-10 px-4 pt-6 pb-4">
         <h1 className="text-xl font-bold text-gold-gradient text-center mb-4">
           导览任务
         </h1>
         
-        {/* 总进度 */}
         <GlassCard className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -170,7 +279,6 @@ const GuideTasks: React.FC = () => {
           </p>
         </GlassCard>
 
-        {/* 主题路线进行中 */}
         {currentRoute && (
           <GlassCard className="p-4 mt-4 bg-gradient-to-r from-gold/10 to-teal/10 border-gold/30">
             <div className="flex items-center gap-2 mb-3">
@@ -183,12 +291,15 @@ const GuideTasks: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-white">{currentRoute.name}</h3>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal/20 text-teal">
-                    进行中
+                  <span className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-full',
+                    isRouteCompleted ? 'bg-teal/20 text-teal' : 'bg-gold/20 text-gold'
+                  )}>
+                    {isRouteCompleted ? '已完成' : '进行中'}
                   </span>
                 </div>
                 <p className="text-xs text-text-secondary">
-                  进度 {currentRouteProgress}/{currentRoute.hallIds.length} 展厅
+                  进度 {currentRouteProgress}/{currentRoute.exhibitIds.length} 项任务
                 </p>
               </div>
               <button
@@ -199,19 +310,23 @@ const GuideTasks: React.FC = () => {
               </button>
             </div>
             <ProgressBar
-              progress={(currentRouteProgress / currentRoute.hallIds.length) * 100}
+              progress={(currentRouteProgress / currentRoute.exhibitIds.length) * 100}
               color="teal"
             />
             <div className="flex gap-2 mt-3">
               <button
                 onClick={handleContinueRoute}
-                className="flex-1 btn-gold flex items-center justify-center gap-2 text-sm py-2"
+                disabled={isRouteCompleted}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 text-sm py-2',
+                  isRouteCompleted ? 'bg-glass text-text-muted cursor-not-allowed rounded-full' : 'btn-gold'
+                )}
               >
                 <Navigation size={14} />
-                继续路线
+                {isRouteCompleted ? '路线已完成' : '继续路线'}
               </button>
               <button
-                onClick={handleViewRouteProgress}
+                onClick={() => setActiveRouteTab('tasks')}
                 className="flex-1 btn-ghost flex items-center justify-center gap-2 text-sm py-2"
               >
                 <Check size={14} />
@@ -223,7 +338,6 @@ const GuideTasks: React.FC = () => {
       </header>
 
       <div className="page-content">
-        {/* 纪念章收集 */}
         <div className="px-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-white">纪念章收集</h2>
@@ -246,7 +360,6 @@ const GuideTasks: React.FC = () => {
           </div>
         </div>
 
-        {/* 内容切换 Tab */}
         <div className="px-4 mb-4">
           <div className="flex gap-2 glass-card p-1">
             <button
@@ -278,52 +391,60 @@ const GuideTasks: React.FC = () => {
 
         {activeRouteTab === 'tasks' ? (
           <>
-            {/* 路线关联任务 */}
             {currentRoute && routeTasks.length > 0 && (
               <div className="px-4 mb-6">
                 <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                   <Flag size={16} style={{ color: currentRoute.color }} />
-                  「{currentRoute.name}」路线任务
+                  「{currentRoute.name}」路线站点
                 </h2>
                 <div className="space-y-2">
-                  {routeTasks.map((task, index) => {
-                    const exhibit = task.exhibitId ? getExhibitById(task.exhibitId) : null;
+                  {currentRoute.exhibitIds.map((exhibitId, idx) => {
+                    const exhibit = getExhibitById(exhibitId);
+                    const task = routeTasks.find(t => t.exhibitId === exhibitId);
+                    const hall = exhibit ? getHallById(exhibit.hallId) : null;
+                    const isCompleted = task ? user.completedTasks.includes(task.id) : false;
+                    const isCurrent = idx === currentRouteProgress;
                     return (
                       <GlassCard
-                        key={task.id}
+                        key={exhibitId}
                         className={cn(
                           'p-3 transition-all',
-                          task.isCompleted ? 'opacity-70' : 'hover:border-gold/30'
+                          isCompleted ? 'opacity-70' : isCurrent ? 'border-gold/40' : 'hover:border-gold/30'
                         )}
                       >
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold',
-                            task.isCompleted
-                              ? 'bg-teal/20 text-teal'
-                              : 'bg-glass text-text-secondary'
+                            isCompleted ? 'bg-teal/20 text-teal' :
+                            isCurrent ? 'bg-gold/20 text-gold' : 'bg-glass text-text-secondary'
                           )}>
-                            {task.isCompleted ? <Check size={14} /> : index + 1}
+                            {isCompleted ? <Check size={14} /> : idx + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <h4 className={cn(
                                 'text-sm font-semibold',
-                                task.isCompleted ? 'text-text-muted' : 'text-white'
+                                isCompleted ? 'text-text-muted' : isCurrent ? 'text-gold' : 'text-white'
                               )}>
-                                {task.title}
+                                {exhibit?.name ?? `展品 ${idx + 1}`}
                               </h4>
-                              {task.isCompleted && (
+                              {isCompleted && (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-teal/20 text-teal">
                                   已完成
                                 </span>
                               )}
+                              {isCurrent && !isCompleted && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold">
+                                  当前站
+                                </span>
+                              )}
                             </div>
                             <p className="text-[10px] text-text-secondary">
-                              {exhibit ? `📍 ${exhibit.name}` : task.description}
+                              {hall ? `🏛️ ${hall.name}` : ''}
+                              {task?.question ? ' · 📝 有答题任务' : ''}
                             </p>
                           </div>
-                          {!task.isCompleted && task.question && (
+                          {!isCompleted && task?.question && (
                             <button
                               onClick={() => handleStartQuiz(task)}
                               className="text-[10px] px-2 py-1 rounded-full bg-gold/20 text-gold"
@@ -339,7 +460,6 @@ const GuideTasks: React.FC = () => {
               </div>
             )}
 
-            {/* 任务分类 Tab */}
             <div className="px-4 mb-4">
               <div className="flex gap-2 glass-card p-1">
                 {tabs.map((tab) => {
@@ -364,7 +484,6 @@ const GuideTasks: React.FC = () => {
               </div>
             </div>
 
-            {/* 任务列表 */}
             <div className="px-4 mb-8">
               <div className="space-y-3">
                 {filteredTasks.map((task, index) => (
@@ -435,7 +554,6 @@ const GuideTasks: React.FC = () => {
             <h2 className="text-sm font-semibold text-white mb-3">选择主题路线</h2>
             <div className="space-y-3">
               {tourRoutes.map((route, index) => {
-                const isSelected = selectedRouteId === route.id;
                 const isCurrentRoute = user.currentRouteId === route.id;
                 return (
                   <div key={route.id} style={{ animationDelay: `${index * 50}ms` }} className="animate-slide-up">
@@ -444,7 +562,6 @@ const GuideTasks: React.FC = () => {
                       onClick={() => !isCurrentRoute && handleSelectRoute(route.id)}
                       className={cn(
                         'p-4 transition-all',
-                        isSelected && 'ring-2 ring-gold',
                         isCurrentRoute && 'opacity-60'
                       )}
                     >
@@ -488,14 +605,6 @@ const GuideTasks: React.FC = () => {
                               {route.exhibitIds.length}件展品
                             </span>
                           </div>
-                          {isSelected && !isCurrentRoute && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleStartRoute(); }}
-                              className="w-full mt-3 btn-gold text-sm py-2"
-                            >
-                              开始这条路线
-                            </button>
-                          )}
                         </div>
                       </div>
                     </GlassCard>
@@ -506,6 +615,70 @@ const GuideTasks: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 路线详情弹窗 */}
+      {showRouteDetail && selectedRouteId && (() => {
+        const route = getRouteById(selectedRouteId);
+        if (!route) return null;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowRouteDetail(false)} />
+            <GlassCard className="relative w-full max-w-md max-h-[85vh] overflow-y-auto p-0 animate-slide-up">
+              <div className="relative h-40 overflow-hidden rounded-t-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br" style={{ background: `linear-gradient(135deg, ${route.color}40, ${route.color}10)` }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-6xl">{route.icon}</span>
+                </div>
+                <button onClick={() => setShowRouteDetail(false)} className="absolute top-3 right-3 p-2 rounded-full bg-black/40 text-white">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-white mb-1">{route.name}</h3>
+                <p className="text-sm text-text-secondary mb-3">{route.description}</p>
+                <div className="flex gap-4 text-xs text-text-muted mb-4">
+                  <span className="flex items-center gap-1"><Clock size={12} />{route.estimatedTime}分钟</span>
+                  <span className="flex items-center gap-1"><MapPin size={12} />{route.hallIds.length}个展厅</span>
+                  <span>{route.exhibitIds.length}件展品</span>
+                </div>
+
+                <h4 className="text-sm font-semibold text-white mb-2">路线站点</h4>
+                <div className="space-y-2 mb-5">
+                  {route.exhibitIds.map((eid, idx) => {
+                    const exhibit = getExhibitById(eid);
+                    const hall = exhibit ? getHallById(exhibit.hallId) : null;
+                    const task = tasks.find(t => t.exhibitId === eid);
+                    const isCompleted = task ? user.completedTasks.includes(task.id) : false;
+                    return (
+                      <div key={eid} className="flex items-center gap-3 p-2 rounded-lg bg-glass">
+                        <div className={cn(
+                          'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0',
+                          isCompleted ? 'bg-teal/20 text-teal' : 'bg-glass-border text-text-secondary'
+                        )}>
+                          {isCompleted ? <Check size={12} /> : idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-white">{exhibit?.name ?? `展品 ${idx + 1}`}</p>
+                          <p className="text-[10px] text-text-muted">
+                            {hall?.name ?? ''}
+                            {task?.question ? ' · 📝 答题挑战' : ''}
+                          </p>
+                        </div>
+                        {isCompleted && <span className="text-[10px] text-teal">✓</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button onClick={() => handleStartRoute(selectedRouteId)} className="btn-gold w-full flex items-center justify-center gap-2">
+                  <Navigation size={16} />
+                  开始这条路线
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+        );
+      })()}
 
       {/* 答题弹窗 */}
       {showQuiz && currentTask && (

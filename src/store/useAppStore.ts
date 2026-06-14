@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { UserData, UserSettings, Message, Feedback, Reservation, Photo, Notification, Squad, TourRoute, SquadMember } from '@/types';
 import { mockMessages } from '@/data/social';
+import { getRouteById as getRouteByIdFromData } from '@/data/routes';
 
 interface AppState {
   user: UserData;
@@ -42,8 +43,9 @@ interface AppState {
   leaveSquad: () => void;
   setSquadGatherPoint: (x: number, y: number, name: string) => void;
   updateSquadMemberLocation: (friendId: string, hallId: string | null) => void;
+  setSquadRoute: (routeId: string | null) => void;
   setCurrentRoute: (routeId: string | null) => void;
-  advanceRouteProgress: () => void;
+  advanceRouteProgress: (exhibitId?: string) => void;
 }
 
 const initialSettings: UserSettings = {
@@ -412,6 +414,7 @@ export const useAppStore = create<AppState>()(
             },
           ],
           currentHallId: get().currentHallId,
+          currentRouteId: null,
           createdAt: Date.now(),
         };
         const newNotification: Notification = {
@@ -513,6 +516,17 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      setSquadRoute: (routeId) => {
+        const { squad } = get().user;
+        if (!squad) return;
+        set({
+          user: {
+            ...get().user,
+            squad: { ...squad, currentRouteId: routeId },
+          },
+        });
+      },
+
       setCurrentRoute: (routeId) => {
         set({
           user: {
@@ -523,9 +537,20 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      advanceRouteProgress: () => {
+      advanceRouteProgress: (exhibitId) => {
         const { currentRouteId, routeProgress } = get().user;
         if (!currentRouteId) return;
+
+        if (exhibitId) {
+          const route = getRouteByIdFromData(currentRouteId);
+          if (!route) return;
+          if (!route.exhibitIds.includes(exhibitId)) return;
+        }
+
+        const route = getRouteByIdFromData(currentRouteId);
+        const maxProgress = route ? route.exhibitIds.length : 0;
+        if (routeProgress >= maxProgress) return;
+
         set({
           user: {
             ...get().user,

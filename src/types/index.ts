@@ -74,6 +74,9 @@ export interface Photo {
   type?: 'photo' | 'postcard';
   templateColor?: string;
   text?: string;
+  squadId?: string;
+  squadMembers?: string[];
+  routeName?: string;
 }
 
 export interface TourRoute {
@@ -103,6 +106,7 @@ export interface Squad {
   leaderId: string;
   members: SquadMember[];
   currentHallId: string | null;
+  currentRouteId: string | null;
   gatherPoint?: { x: number; y: number; name: string };
   createdAt: number;
 }

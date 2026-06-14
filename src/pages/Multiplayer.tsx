@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin, Navigation, Flag, Crown, LogOut, Check } from 'lucide-react';
+import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin, Navigation, Flag, Crown, LogOut, Check, Route, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
 import { friends, emojiActions, photoSpots } from '@/data/social';
 import { useAppStore } from '@/store/useAppStore';
 import { getHallById } from '@/data/halls';
 import { halls } from '@/data/halls';
+import { tourRoutes, getRouteById } from '@/data/routes';
+import { tasks } from '@/data/tasks';
+import { getExhibitById } from '@/data/exhibits';
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +28,7 @@ const getFriendHallId = (friend: { currentHall?: string }): string | null => {
 
 const Multiplayer: React.FC = () => {
   const navigate = useNavigate();
-  const { user, addChatMessage, getChatMessages, createSquad, joinSquad, leaveSquad, setSquadGatherPoint, addNotification } = useAppStore();
+  const { user, addChatMessage, getChatMessages, createSquad, joinSquad, leaveSquad, setSquadGatherPoint, setSquadRoute, setCurrentRoute, addNotification, addPhoto } = useAppStore();
   const [activeTab, setActiveTab] = useState<'friends' | 'chat' | 'squad'>('friends');
   const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
   const [chatMessage, setChatMessage] = useState('');
@@ -39,6 +42,7 @@ const Multiplayer: React.FC = () => {
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [showFriendPicker, setShowFriendPicker] = useState(false);
   const [friendPickerMode, setFriendPickerMode] = useState<'create' | 'invite'>('create');
+  const [showSquadRoutePicker, setShowSquadRoutePicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const onlineFriends = friends.filter(f => f.isOnline);
@@ -194,6 +198,24 @@ const Multiplayer: React.FC = () => {
         ? prev.filter(id => id !== friendId)
         : [...prev, friendId]
     );
+  };
+
+  const handleStartSquadRoute = (routeId: string) => {
+    setCurrentRoute(routeId);
+    setSquadRoute(routeId);
+    setShowSquadRoutePicker(false);
+    const route = getRouteById(routeId);
+    if (route && route.hallIds.length > 0) {
+      navigate(`/hall/${route.hallIds[0]}?fromRoute=${routeId}&step=1`);
+    }
+  };
+
+  const handleSquadPhoto = () => {
+    const squad = currentSquad;
+    if (!squad) return;
+    const routeName = squad.currentRouteId ? getRouteById(squad.currentRouteId)?.name : undefined;
+    const memberNames = squad.members.map(m => m.name);
+    navigate(`/camera?squadId=${squad.id}&squadMembers=${encodeURIComponent(memberNames.join(','))}${routeName ? `&routeName=${encodeURIComponent(routeName)}` : ''}`);
   };
 
   const handleLeaveSquad = () => {
@@ -605,59 +627,153 @@ const Multiplayer: React.FC = () => {
                     队伍成员 ({currentSquad.members.length})
                   </h3>
                   <div className="space-y-2">
-                    {currentSquad.members.map((member, index) => (
-                      <GlassCard key={member.friendId} className="flex items-center gap-3 p-3">
-                        <div className="relative">
-                          <img
-                            src={member.avatar}
-                            alt={member.name}
-                            className="w-12 h-12 rounded-full bg-space-light"
-                          />
-                          {member.isOnline && (
-                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-space-dark" />
-                          )}
-                          {index === 0 && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gold flex items-center justify-center">
-                              <Crown size={12} className="text-space-dark" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-white text-sm">{member.name}</h4>
+                    {currentSquad.members.map((member, index) => {
+                      const memberRouteProgress = (() => {
+                        if (!currentSquad.currentRouteId) return null;
+                        const route = getRouteById(currentSquad.currentRouteId);
+                        if (!route) return null;
+                        const completedInRoute = route.exhibitIds.filter(eid => {
+                          const task = tasks.find(t => t.exhibitId === eid);
+                          return task ? user.completedTasks.includes(task.id) : false;
+                        }).length;
+                        return { completed: completedInRoute, total: route.exhibitIds.length };
+                      })();
+                      return (
+                        <GlassCard key={member.friendId} className="flex items-center gap-3 p-3">
+                          <div className="relative">
+                            <img
+                              src={member.avatar}
+                              alt={member.name}
+                              className="w-12 h-12 rounded-full bg-space-light"
+                            />
+                            {member.isOnline && (
+                              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-space-dark" />
+                            )}
                             {index === 0 && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold">
-                                队长
-                              </span>
+                              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gold flex items-center justify-center">
+                                <Crown size={12} className="text-space-dark" />
+                              </div>
                             )}
                           </div>
-                          <p className="text-xs text-text-secondary flex items-center gap-1">
-                            <MapPin size={10} />
-                            {getHallName(member.currentHallId)}
-                          </p>
-                          <p className="text-[10px] text-text-muted mt-1">
-                            {formatJoinTime(member.joinedAt)}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className={cn(
-                            'text-[10px] px-2 py-0.5 rounded-full',
-                            member.isOnline
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-text-muted/20 text-text-muted'
-                          )}>
-                            {member.isOnline ? '在线' : '离线'}
-                          </span>
-                        </div>
-                      </GlassCard>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-white text-sm">{member.name}</h4>
+                              {index === 0 && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold">
+                                  队长
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-text-secondary flex items-center gap-1">
+                              <MapPin size={10} />
+                              {getHallName(member.currentHallId)}
+                            </p>
+                            {memberRouteProgress && member.friendId === 'me' && (
+                              <p className="text-[10px] text-teal mt-1 flex items-center gap-1">
+                                <Trophy size={10} />
+                                路线进度 {memberRouteProgress.completed}/{memberRouteProgress.total}
+                              </p>
+                            )}
+                            {memberRouteProgress && member.friendId !== 'me' && (
+                              <p className="text-[10px] text-text-muted mt-1">
+                                🔄 进行中...
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={cn(
+                              'text-[10px] px-2 py-0.5 rounded-full',
+                              member.isOnline
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-text-muted/20 text-text-muted'
+                            )}>
+                              {member.isOnline ? '在线' : '离线'}
+                            </span>
+                          </div>
+                        </GlassCard>
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* 小队路线进度 */}
+                {currentSquad.currentRouteId && (() => {
+                  const squadRoute = getRouteById(currentSquad.currentRouteId);
+                  if (!squadRoute) return null;
+                  const myProgress = squadRoute.exhibitIds.filter(eid => {
+                    const task = tasks.find(t => t.exhibitId === eid);
+                    return task ? user.completedTasks.includes(task.id) : false;
+                  }).length;
+                  return (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <Route size={16} className="text-gold" />
+                        小队路线进度
+                      </h3>
+                      <GlassCard className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-lg">{squadRoute.icon}</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-white">{squadRoute.name}</p>
+                            <p className="text-[10px] text-text-secondary">
+                              你已完成 {myProgress}/{squadRoute.exhibitIds.length} 项
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate('/tasks')}
+                            className="text-[10px] px-2 py-1 rounded-full bg-gold/20 text-gold"
+                          >
+                            继续路线
+                          </button>
+                        </div>
+                        <div className="space-y-1.5">
+                          {squadRoute.exhibitIds.map((eid, idx) => {
+                            const exhibit = getExhibitById(eid);
+                            const task = tasks.find(t => t.exhibitId === eid);
+                            const done = task ? user.completedTasks.includes(task.id) : false;
+                            return (
+                              <div key={eid} className="flex items-center gap-2 text-[10px]">
+                                <div className={cn(
+                                  'w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0',
+                                  done ? 'bg-teal/20 text-teal' : 'bg-glass text-text-muted'
+                                )}>
+                                  {done ? <Check size={8} /> : <span className="text-[8px]">{idx+1}</span>}
+                                </div>
+                                <span className={done ? 'text-text-secondary' : 'text-text-muted'}>
+                                  {exhibit?.name ?? `展品${idx+1}`}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </GlassCard>
+                    </div>
+                  );
+                })()}
 
                 {/* 小队活动 */}
                 <div className="mb-8">
                   <h3 className="text-sm font-semibold text-white mb-3">小队活动</h3>
                   <div className="space-y-2">
+                    <button
+                      onClick={() => setShowSquadRoutePicker(true)}
+                      className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-teal/20 flex items-center justify-center">
+                        <Route size={20} className="text-teal" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm text-white">
+                          {currentSquad.currentRouteId ? '查看路线进度' : '发起同游路线'}
+                        </p>
+                        <p className="text-xs text-text-secondary">
+                          {currentSquad.currentRouteId 
+                            ? `${getRouteById(currentSquad.currentRouteId)?.name ?? '路线进行中'}`
+                            : '和小队一起按路线探索博物馆'}
+                        </p>
+                      </div>
+                      <span className="text-text-muted">›</span>
+                    </button>
                     <button
                       onClick={() => navigate('/map')}
                       className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
@@ -672,28 +788,19 @@ const Multiplayer: React.FC = () => {
                       <span className="text-text-muted">›</span>
                     </button>
                     <button
-                      onClick={() => navigate('/tasks')}
-                      className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-teal/20 flex items-center justify-center">
-                        <Flag size={20} className="text-teal" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm text-white">完成任务挑战</p>
-                        <p className="text-xs text-text-secondary">和小队一起获得奖励</p>
-                      </div>
-                      <span className="text-text-muted">›</span>
-                    </button>
-                    <button
-                      onClick={() => navigate('/camera')}
+                      onClick={handleSquadPhoto}
                       className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
                     >
                       <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
                         <Camera size={20} className="text-purple-400" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="text-sm text-white">合影留念</p>
-                        <p className="text-xs text-text-secondary">记录美好的同游时光</p>
+                        <p className="text-sm text-white">小队合影</p>
+                        <p className="text-xs text-text-secondary">
+                          {currentSquad.currentRouteId 
+                            ? `在${getRouteById(currentSquad.currentRouteId)?.name}站点合影`
+                            : '记录美好的同游时光'}
+                        </p>
                       </div>
                       <span className="text-text-muted">›</span>
                     </button>
@@ -721,6 +828,74 @@ const Multiplayer: React.FC = () => {
           </div>
         ) : null}
       </div>
+
+      {/* 小队路线选择弹窗 */}
+      {showSquadRoutePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowSquadRoutePicker(false)}
+          />
+          <GlassCard className="relative w-full max-w-sm max-h-[80vh] overflow-y-auto p-6 animate-slide-up">
+            <button
+              onClick={() => setShowSquadRoutePicker(false)}
+              className="absolute top-4 right-4 text-text-secondary hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-4">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-teal/20 flex items-center justify-center">
+                <Route size={28} className="text-teal" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">选择同游路线</h3>
+              <p className="text-sm text-text-secondary">
+                小队将一起按照路线探索
+              </p>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              {tourRoutes.map(route => {
+                const isCurrentSquadRoute = currentSquad?.currentRouteId === route.id;
+                return (
+                  <button
+                    key={route.id}
+                    onClick={() => !isCurrentSquadRoute && handleStartSquadRoute(route.id)}
+                    disabled={isCurrentSquadRoute}
+                    className={cn(
+                      'w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left',
+                      isCurrentSquadRoute ? 'bg-teal/10 border border-teal/30' : 'bg-glass hover:bg-glass-border'
+                    )}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
+                      style={{ backgroundColor: `${route.color}20` }}
+                    >
+                      {route.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white">{route.name}</p>
+                      <p className="text-[10px] text-text-secondary">
+                        {route.hallIds.length}展厅 · {route.exhibitIds.length}展品 · {route.estimatedTime}分钟
+                      </p>
+                    </div>
+                    {isCurrentSquadRoute && (
+                      <span className="text-[10px] text-teal">当前路线</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowSquadRoutePicker(false)}
+              className="btn-ghost w-full"
+            >
+              取消
+            </button>
+          </GlassCard>
+        </div>
+      )}
 
       {/* 邀请同游弹窗 */}
       {showInviteModal && selectedFriendData && (

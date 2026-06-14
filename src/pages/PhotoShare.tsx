@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Camera, Image, Send, X, Download, Heart, Share2, Sparkles, Type, Sticker, Edit3, Save } from 'lucide-react';
+import { Camera, Image, Send, X, Download, Heart, Share2, Sparkles, Type, Sticker, Edit3, Save, Users } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
 import { postcardTemplates, photoSpots } from '@/data/social';
 import { useAppStore } from '@/store/useAppStore';
@@ -8,7 +9,14 @@ import type { Photo } from '@/types';
 
 const PhotoShare: React.FC = () => {
   const { user, addPhoto } = useAppStore();
+  const [searchParams] = useSearchParams();
+  const squadIdParam = searchParams.get('squadId');
+  const squadMembersParam = searchParams.get('squadMembers');
+  const routeNameParam = searchParams.get('routeName');
+  const isSquadPhoto = !!squadIdParam;
+
   const [mode, setMode] = useState<'camera' | 'postcard' | 'album'>('camera');
+  const [albumFilter, setAlbumFilter] = useState<'all' | 'photo' | 'postcard' | 'squad'>('all');
   const [selectedSpot, setSelectedSpot] = useState(photoSpots[0]);
   const [selectedTemplate, setSelectedTemplate] = useState(postcardTemplates[0]);
   const [photoTaken, setPhotoTaken] = useState<string | null>(null);
@@ -52,9 +60,15 @@ const PhotoShare: React.FC = () => {
   const handleSavePhoto = () => {
     if (photoTaken) {
       const photoId = `photo-${Date.now()}`;
-      addPhoto(photoId, photoTaken, selectedSpot.name + '留影', selectedSpot.name, { type: 'photo' });
+      const extra: Partial<Photo> = { type: 'photo' };
+      if (isSquadPhoto) {
+        extra.squadId = squadIdParam!;
+        if (squadMembersParam) extra.squadMembers = squadMembersParam.split(',');
+        if (routeNameParam) extra.routeName = routeNameParam;
+      }
+      addPhoto(photoId, photoTaken, isSquadPhoto ? '小队合影' : selectedSpot.name + '留影', selectedSpot.name, extra);
       setShowShareModal(true);
-      showToast('照片已保存到相册');
+      showToast(isSquadPhoto ? '小队合影已保存到相册' : '照片已保存到相册');
     }
   };
 
@@ -167,6 +181,25 @@ const PhotoShare: React.FC = () => {
       <div className="page-content">
         {mode === 'camera' && (
           <div className="px-4">
+            {/* 小队合影提示 */}
+            {isSquadPhoto && (
+              <GlassCard className="p-3 mb-4 bg-purple-500/10 border-purple-500/30">
+                <div className="flex items-center gap-2">
+                  <Users size={16} className="text-purple-400" />
+                  <span className="text-sm text-white font-medium">小队合影模式</span>
+                  {routeNameParam && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal/20 text-teal">
+                      🗺️ {routeNameParam}
+                    </span>
+                  )}
+                </div>
+                {squadMembersParam && (
+                  <p className="text-xs text-text-secondary mt-1">
+                    👥 {squadMembersParam.split(',').join('、')}
+                  </p>
+                )}
+              </GlassCard>
+            )}
             {/* 取景框 */}
             <div className="relative rounded-2xl overflow-hidden mb-4 aspect-[3/4]">
               {photoTaken ? (
@@ -437,9 +470,43 @@ const PhotoShare: React.FC = () => {
 
         {mode === 'album' && (
           <div className="px-4">
-            {user.photos.length > 0 ? (
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+              {[
+                { id: 'all' as const, label: '全部', icon: Image },
+                { id: 'photo' as const, label: '照片', icon: Camera },
+                { id: 'postcard' as const, label: '明信片', icon: Type },
+                { id: 'squad' as const, label: '小队合影', icon: Users },
+              ].map(f => {
+                const Icon = f.icon;
+                const isActive = albumFilter === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => setAlbumFilter(f.id)}
+                    className={cn(
+                      'flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+                      isActive ? 'bg-gold text-space-dark' : 'bg-glass text-text-secondary hover:bg-glass-border'
+                    )}
+                  >
+                    <Icon size={12} />
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {(() => {
+              const filteredPhotos = user.photos.filter(p => {
+                if (albumFilter === 'all') return true;
+                if (albumFilter === 'photo') return p.type === 'photo' || !p.type;
+                if (albumFilter === 'postcard') return p.type === 'postcard';
+                if (albumFilter === 'squad') return !!p.squadId;
+                return true;
+              });
+
+              return filteredPhotos.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {user.photos.map((photo) => (
+                {filteredPhotos.map((photo) => (
                   <GlassCard 
                     key={photo.id} 
                     className="overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform"
@@ -456,12 +523,20 @@ const PhotoShare: React.FC = () => {
                           明信片
                         </span>
                       )}
+                      {photo.squadId && (
+                        <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-500/90 text-white font-medium">
+                          👥 合影
+                        </span>
+                      )}
                     </div>
                     <div className="p-2">
                       <p className="text-xs text-white truncate">{photo.title}</p>
                       <p className="text-[10px] text-text-muted">{photo.location}</p>
                       {photo.text && (
                         <p className="text-[10px] text-text-secondary mt-1 line-clamp-1 italic">"{photo.text}"</p>
+                      )}
+                      {photo.routeName && (
+                        <p className="text-[10px] text-teal mt-0.5">🗺️ {photo.routeName}</p>
                       )}
                     </div>
                   </GlassCard>
@@ -472,8 +547,12 @@ const PhotoShare: React.FC = () => {
                 <div className="w-20 h-20 rounded-full bg-glass flex items-center justify-center mb-4">
                   <Image size={32} className="text-text-muted" />
                 </div>
-                <p className="text-text-secondary mb-2">相册是空的</p>
-                <p className="text-text-muted text-sm mb-4">去拍一些美照或制作明信片吧</p>
+                <p className="text-text-secondary mb-2">
+                  {albumFilter === 'squad' ? '暂无小队合影' : '相册是空的'}
+                </p>
+                <p className="text-text-muted text-sm mb-4">
+                  {albumFilter === 'squad' ? '和小队一起合影留念吧' : '去拍一些美照或制作明信片吧'}
+                </p>
                 <button
                   onClick={() => setMode('camera')}
                   className="btn-gold"
@@ -481,7 +560,8 @@ const PhotoShare: React.FC = () => {
                   开始拍照
                 </button>
               </div>
-            )}
+            );
+            })()}
           </div>
         )}
       </div>
