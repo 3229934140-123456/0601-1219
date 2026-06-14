@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import Lobby from "@/pages/Lobby";
 import HallMap from "@/pages/HallMap";
+import HallDetail from "@/pages/HallDetail";
 import ExhibitDetail from "@/pages/ExhibitDetail";
 import GuideTasks from "@/pages/GuideTasks";
 import Multiplayer from "@/pages/Multiplayer";
@@ -25,9 +26,11 @@ function AppContent() {
     }
   }, [location, displayLocation]);
 
-  const showBottomNav = !location.pathname.startsWith('/exhibit/');
+  const showBottomNav = !location.pathname.startsWith('/exhibit/') && 
+                        !location.pathname.startsWith('/hall/');
 
   const shouldHideNav = location.pathname.startsWith('/exhibit/') || 
+                        location.pathname.startsWith('/hall/') ||
                         location.pathname === '/camera';
 
   return (
@@ -40,6 +43,7 @@ function AppContent() {
         <Routes location={displayLocation}>
           <Route path="/" element={<Lobby />} />
           <Route path="/map" element={<HallMap />} />
+          <Route path="/hall/:hallId" element={<HallDetail />} />
           <Route path="/exhibit/:id" element={<ExhibitDetail />} />
           <Route path="/tasks" element={<GuideTasks />} />
           <Route path="/social" element={<Multiplayer />} />

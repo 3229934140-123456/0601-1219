@@ -25,12 +25,7 @@ const HallMap: React.FC = () => {
   };
 
   const handleEnterHall = (hallId: string) => {
-    const hallExhibits = getExhibitsByHall(hallId);
-    if (hallExhibits.length > 0) {
-      navigate(`/exhibit/${hallExhibits[0].id}?hall=${hallId}`);
-    } else {
-      navigate(`/exhibit/exhibit-1?hall=${hallId}`);
-    }
+    navigate(`/hall/${hallId}`);
   };
 
   return (

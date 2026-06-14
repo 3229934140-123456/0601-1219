@@ -1,21 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin } from 'lucide-react';
+import { Users, MessageCircle, Camera, Send, X, UserPlus, Smile, MapPin, Navigation, Flag, Crown, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import GlassCard from '@/components/GlassCard';
 import { friends, emojiActions, photoSpots } from '@/data/social';
 import { useAppStore } from '@/store/useAppStore';
+import { getHallById } from '@/data/halls';
 import type { Message } from '@/types';
 import { cn } from '@/lib/utils';
 
 const Multiplayer: React.FC = () => {
   const navigate = useNavigate();
-  const { user, addChatMessage, getChatMessages } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'friends' | 'chat'>('friends');
+  const { user, addChatMessage, getChatMessages, createSquad, joinSquad, leaveSquad, setSquadGatherPoint, addNotification } = useAppStore();
+  const [activeTab, setActiveTab] = useState<'friends' | 'chat' | 'squad'>('friends');
   const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
   const [chatMessage, setChatMessage] = useState('');
   const [showEmojis, setShowEmojis] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showPhotoSpot, setShowPhotoSpot] = useState(false);
+  const [showCreateSquad, setShowCreateSquad] = useState(false);
+  const [squadName, setSquadName] = useState('');
+  const [showGatherModal, setShowGatherModal] = useState(false);
+  const [gatherName, setGatherName] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const onlineFriends = friends.filter(f => f.isOnline);
@@ -23,12 +28,19 @@ const Multiplayer: React.FC = () => {
 
   const selectedFriendData = friends.find(f => f.id === selectedFriend);
   const currentMessages = selectedFriend ? getChatMessages(selectedFriend) : [];
+  const currentSquad = user.squad;
 
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [currentMessages.length]);
+
+  useEffect(() => {
+    if (currentSquad && activeTab === 'squad' && currentSquad.gatherPoint) {
+      setGatherName(currentSquad.gatherPoint.name);
+    }
+  }, [currentSquad, activeTab]);
 
   const autoReplies = [
     '好的！我也想去看看~',
@@ -100,6 +112,58 @@ const Multiplayer: React.FC = () => {
     setActiveTab('chat');
   };
 
+  const handleCreateSquad = () => {
+    if (!squadName.trim() || !selectedFriend) {
+      return;
+    }
+    const friendData = friends.find(f => f.id === selectedFriend);
+    if (!friendData) return;
+    
+    createSquad(squadName.trim(), selectedFriend, friendData.name, friendData.avatar);
+    setShowCreateSquad(false);
+    setShowInviteModal(false);
+    setActiveTab('squad');
+    setSquadName('');
+    setSelectedFriend(null);
+  };
+
+  const handleJoinSquad = (friendId: string) => {
+    const friendData = friends.find(f => f.id === friendId);
+    if (!friendData) return;
+    joinSquad(friendId, friendData.name, friendData.avatar);
+    setActiveTab('squad');
+  };
+
+  const handleLeaveSquad = () => {
+    leaveSquad();
+    setActiveTab('friends');
+  };
+
+  const handleSetGatherPoint = () => {
+    if (!gatherName.trim() || !currentSquad) return;
+    const hall = currentSquad.currentHallId ? getHallById(currentSquad.currentHallId) : null;
+    const x = hall ? hall.position.x : 50;
+    const y = hall ? hall.position.y : 50;
+    setSquadGatherPoint(x, y, gatherName.trim());
+    setShowGatherModal(false);
+    setGatherName('');
+  };
+
+  const formatJoinTime = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return '刚刚加入';
+    if (minutes < 60) return `${minutes} 分钟前加入`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours} 小时前加入`;
+  };
+
+  const getHallName = (hallId: string | null) => {
+    if (!hallId) return '未定位';
+    const hall = getHallById(hallId);
+    return hall ? hall.name : '未知位置';
+  };
+
   return (
     <div className="page-container">
       <div className="stars-bg opacity-30" />
@@ -136,6 +200,21 @@ const Multiplayer: React.FC = () => {
             <MessageCircle size={16} />
             私聊
             <span className="absolute top-1 right-4 w-2 h-2 bg-red-500 rounded-full" />
+          </button>
+          <button
+            onClick={() => setActiveTab('squad')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-sm font-medium transition-all relative',
+              activeTab === 'squad'
+                ? 'bg-gold text-space-dark'
+                : 'text-text-secondary hover:text-white'
+            )}
+          >
+            <Flag size={16} />
+            小队
+            {currentSquad && (
+              <span className="absolute top-1 right-2 w-2 h-2 bg-green-500 rounded-full" />
+            )}
           </button>
         </div>
       </header>
@@ -247,7 +326,7 @@ const Multiplayer: React.FC = () => {
               </div>
             </div>
           </>
-        ) : (
+        ) : activeTab === 'chat' ? (
           <>
             {/* 聊天界面 */}
             {selectedFriend ? (
@@ -376,7 +455,187 @@ const Multiplayer: React.FC = () => {
               </div>
             )}
           </>
-        )}
+        ) : activeTab === 'squad' ? (
+          <div className="px-4">
+            {currentSquad ? (
+              <>
+                {/* 小队信息 */}
+                <div className="mb-6">
+                  <GlassCard className="p-4 bg-gradient-to-br from-gold/10 to-teal/10 border-gold/30">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gold/20 flex items-center justify-center">
+                          <Flag size={24} className="text-gold" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-bold text-white">{currentSquad.name}</h2>
+                          <p className="text-xs text-text-secondary">
+                            {currentSquad.members.length} 名成员 · {getHallName(currentSquad.currentHallId)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleLeaveSquad}
+                        className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                      >
+                        <LogOut size={18} />
+                      </button>
+                    </div>
+
+                    {/* 集合点 */}
+                    {currentSquad.gatherPoint && (
+                      <div className="mb-4 p-3 rounded-xl bg-teal/10 border border-teal/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Navigation size={16} className="text-teal animate-pulse" />
+                          <span className="text-sm font-semibold text-teal">集合点</span>
+                        </div>
+                        <p className="text-sm text-white">📍 {currentSquad.gatherPoint.name}</p>
+                      </div>
+                    )}
+
+                    {/* 队长操作 */}
+                    {currentSquad.leaderId === 'me' && (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setShowGatherModal(true)}
+                          className="flex-1 btn-gold flex items-center justify-center gap-2"
+                        >
+                          <Navigation size={16} />
+                          {currentSquad.gatherPoint ? '更新集合点' : '设置集合点'}
+                        </button>
+                        <button
+                          onClick={() => setShowCreateSquad(true)}
+                          className="flex-1 btn-ghost flex items-center justify-center gap-2"
+                        >
+                          <UserPlus size={16} />
+                          邀请成员
+                        </button>
+                      </div>
+                    )}
+                  </GlassCard>
+                </div>
+
+                {/* 队伍成员 */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-white mb-3">
+                    队伍成员 ({currentSquad.members.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {currentSquad.members.map((member, index) => (
+                      <GlassCard key={member.friendId} className="flex items-center gap-3 p-3">
+                        <div className="relative">
+                          <img
+                            src={member.avatar}
+                            alt={member.name}
+                            className="w-12 h-12 rounded-full bg-space-light"
+                          />
+                          {member.isOnline && (
+                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-space-dark" />
+                          )}
+                          {index === 0 && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gold flex items-center justify-center">
+                              <Crown size={12} className="text-space-dark" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-white text-sm">{member.name}</h4>
+                            {index === 0 && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold/20 text-gold">
+                                队长
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-text-secondary flex items-center gap-1">
+                            <MapPin size={10} />
+                            {getHallName(member.currentHallId)}
+                          </p>
+                          <p className="text-[10px] text-text-muted mt-1">
+                            {formatJoinTime(member.joinedAt)}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={cn(
+                            'text-[10px] px-2 py-0.5 rounded-full',
+                            member.isOnline
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'bg-text-muted/20 text-text-muted'
+                          )}>
+                            {member.isOnline ? '在线' : '离线'}
+                          </span>
+                        </div>
+                      </GlassCard>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 小队活动 */}
+                <div className="mb-8">
+                  <h3 className="text-sm font-semibold text-white mb-3">小队活动</h3>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => navigate('/map')}
+                      className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-gold/20 flex items-center justify-center">
+                        <MapPin size={20} className="text-gold" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm text-white">一起逛展厅</p>
+                        <p className="text-xs text-text-secondary">查看展厅地图，选择目的地</p>
+                      </div>
+                      <span className="text-text-muted">›</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/tasks')}
+                      className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-teal/20 flex items-center justify-center">
+                        <Flag size={20} className="text-teal" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm text-white">完成任务挑战</p>
+                        <p className="text-xs text-text-secondary">和小队一起获得奖励</p>
+                      </div>
+                      <span className="text-text-muted">›</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/camera')}
+                      className="w-full glass-card p-4 flex items-center gap-3 hover:border-gold/30 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <Camera size={20} className="text-purple-400" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm text-white">合影留念</p>
+                        <p className="text-xs text-text-secondary">记录美好的同游时光</p>
+                      </div>
+                      <span className="text-text-muted">›</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 rounded-full bg-glass flex items-center justify-center mb-4">
+                  <Users size={36} className="text-text-muted" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">还没有同游小队</h3>
+                <p className="text-text-secondary text-sm mb-6">
+                  创建小队，邀请好友一起探索博物馆
+                </p>
+                <button
+                  onClick={() => setShowCreateSquad(true)}
+                  className="btn-gold flex items-center gap-2"
+                >
+                  <Flag size={18} />
+                  创建同游小队
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {/* 邀请同游弹窗 */}
@@ -433,12 +692,31 @@ const Multiplayer: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowInviteModal(false)}
-              className="btn-gold w-full"
-            >
-              发送邀请
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowInviteModal(false);
+                  if (currentSquad && currentSquad.leaderId === 'me') {
+                    handleJoinSquad(selectedFriendData.id);
+                  } else {
+                    setSquadName(`${user.nickname}和${selectedFriendData.name}的小队`);
+                    setShowCreateSquad(true);
+                  }
+                }}
+                className="btn-gold w-full"
+              >
+                {currentSquad && currentSquad.leaderId === 'me' ? '邀请加入小队' : '创建同游小队'}
+              </button>
+              <button
+                onClick={() => {
+                  handleStartChat(selectedFriendData.id);
+                  setShowInviteModal(false);
+                }}
+                className="btn-ghost w-full"
+              >
+                先聊天
+              </button>
+            </div>
           </GlassCard>
         </div>
       )}
@@ -485,6 +763,153 @@ const Multiplayer: React.FC = () => {
                   <Camera size={16} className="text-gold" />
                 </button>
               ))}
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* 创建小队弹窗 */}
+      {showCreateSquad && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => {
+              setShowCreateSquad(false);
+              setSquadName('');
+            }}
+          />
+          <GlassCard className="relative w-full max-w-sm p-6 animate-slide-up">
+            <button
+              onClick={() => {
+                setShowCreateSquad(false);
+                setSquadName('');
+              }}
+              className="absolute top-4 right-4 text-text-secondary hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gold/20 flex items-center justify-center">
+                <Flag size={32} className="text-gold" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">创建同游小队</h3>
+              <p className="text-sm text-text-secondary">
+                邀请好友一起探索博物馆
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-xs text-text-secondary mb-2">小队名称</label>
+              <input
+                type="text"
+                value={squadName}
+                onChange={(e) => setSquadName(e.target.value)}
+                placeholder="给小队起个名字吧"
+                className="w-full px-4 py-3 rounded-xl bg-glass border border-glass-border text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-gold/50 transition-colors"
+              />
+            </div>
+
+            {selectedFriendData && (
+              <div className="mb-6">
+                <p className="text-xs text-text-secondary mb-2">邀请成员</p>
+                <GlassCard className="p-3 flex items-center gap-3">
+                  <img
+                    src={selectedFriendData.avatar}
+                    alt={selectedFriendData.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-white">{selectedFriendData.name}</p>
+                    <p className="text-xs text-green-500">在线</p>
+                  </div>
+                  <span className="text-xs text-gold">已选择</span>
+                </GlassCard>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={handleCreateSquad}
+                className="btn-gold w-full flex items-center justify-center gap-2"
+              >
+                <Flag size={16} />
+                创建小队
+              </button>
+              <button
+                onClick={() => {
+                  setShowCreateSquad(false);
+                  setSquadName('');
+                  setSelectedFriend(null);
+                }}
+                className="btn-ghost w-full"
+              >
+                取消
+              </button>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* 设置集合点弹窗 */}
+      {showGatherModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => {
+              setShowGatherModal(false);
+              setGatherName('');
+            }}
+          />
+          <GlassCard className="relative w-full max-w-sm p-6 animate-slide-up">
+            <button
+              onClick={() => {
+                setShowGatherModal(false);
+                setGatherName('');
+              }}
+              className="absolute top-4 right-4 text-text-secondary hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-teal/20 flex items-center justify-center">
+                <Navigation size={32} className="text-teal animate-pulse" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">设置集合点</h3>
+              <p className="text-sm text-text-secondary">
+                通知小队成员在此处汇合
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-xs text-text-secondary mb-2">集合点名称</label>
+              <input
+                type="text"
+                value={gatherName}
+                onChange={(e) => setGatherName(e.target.value)}
+                placeholder="例如：古代文明厅入口"
+                className="w-full px-4 py-3 rounded-xl bg-glass border border-glass-border text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-gold/50 transition-colors"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleSetGatherPoint}
+                className="btn-gold w-full flex items-center justify-center gap-2"
+              >
+                <Navigation size={16} />
+                设置集合点
+              </button>
+              <button
+                onClick={() => {
+                  setShowGatherModal(false);
+                  setGatherName('');
+                }}
+                className="btn-ghost w-full"
+              >
+                取消
+              </button>
             </div>
           </GlassCard>
         </div>

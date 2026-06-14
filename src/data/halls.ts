@@ -77,3 +77,7 @@ export const hallCategories = [
   { id: 'culture', name: '文化' },
   { id: 'special', name: '特展' },
 ];
+
+export const getHallById = (id: string) => {
+  return halls.find(hall => hall.id === id);
+};

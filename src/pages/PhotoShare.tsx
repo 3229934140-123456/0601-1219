@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Camera, Image, Send, X, Download, Heart, Share2, Sparkles, Type, Sticker } from 'lucide-react';
+import { Camera, Image, Send, X, Download, Heart, Share2, Sparkles, Type, Sticker, Edit3, Save } from 'lucide-react';
 import GlassCard from '@/components/GlassCard';
 import { postcardTemplates, photoSpots } from '@/data/social';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
+import type { Photo } from '@/types';
 
 const PhotoShare: React.FC = () => {
   const { user, addPhoto } = useAppStore();
@@ -17,6 +18,9 @@ const PhotoShare: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [editText, setEditText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const filters = [
     { name: '原图', class: '' },
@@ -73,6 +77,53 @@ const PhotoShare: React.FC = () => {
     setPhotoTaken(null);
     setFilterIndex(0);
     setPostcardText('来自元宇宙博物馆的问候');
+  };
+
+  const handleOpenPhotoDetail = (photo: Photo) => {
+    setSelectedPhoto(photo);
+    setEditText(photo.text || '');
+    setIsEditing(false);
+  };
+
+  const handleClosePhotoDetail = () => {
+    setSelectedPhoto(null);
+    setIsEditing(false);
+    setEditText('');
+  };
+
+  const handleShareFromDetail = () => {
+    setShowShareModal(true);
+  };
+
+  const handleToggleEdit = () => {
+    if (isEditing) {
+      setIsEditing(false);
+      setEditText(selectedPhoto?.text || '');
+    } else {
+      setIsEditing(true);
+    }
+  };
+
+  const handleSaveAsNew = () => {
+    if (!selectedPhoto) return;
+    if (!editText.trim()) {
+      showToast('请输入明信片寄语', 'error');
+      return;
+    }
+    const photoId = `postcard-${Date.now()}`;
+    addPhoto(photoId, selectedPhoto.image, selectedPhoto.title + ' (副本)', selectedPhoto.location, {
+      type: 'postcard',
+      templateColor: selectedPhoto.templateColor || '#D4AF37',
+      text: editText,
+    });
+    showToast('明信片已另存为新卡片');
+    setIsEditing(false);
+    handleClosePhotoDetail();
+  };
+
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
   return (
@@ -389,7 +440,11 @@ const PhotoShare: React.FC = () => {
             {user.photos.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
                 {user.photos.map((photo) => (
-                  <GlassCard key={photo.id} className="overflow-hidden">
+                  <GlassCard 
+                    key={photo.id} 
+                    className="overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform"
+                    onClick={() => handleOpenPhotoDetail(photo)}
+                  >
                     <div className="relative">
                       <img 
                         src={photo.image} 
@@ -489,6 +544,149 @@ const PhotoShare: React.FC = () => {
           toast.type === 'success' ? 'bg-teal text-white' : 'bg-red-500 text-white'
         )}>
           {toast.message}
+        </div>
+      )}
+
+      {/* 照片/明信片详情弹窗 */}
+      {selectedPhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={handleClosePhotoDetail}
+          />
+          <div className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={handleClosePhotoDetail}
+              className="absolute -top-12 right-0 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors z-10"
+            >
+              <X size={24} />
+            </button>
+
+            <GlassCard className="overflow-hidden">
+              {/* 图片预览 */}
+              <div
+                className="relative"
+                style={{
+                  padding: selectedPhoto.type === 'postcard' ? '12px' : '0',
+                  background: selectedPhoto.type === 'postcard'
+                    ? `linear-gradient(135deg, ${selectedPhoto.templateColor}40, transparent)`
+                    : 'transparent'
+                }}
+              >
+                <div
+                  style={{
+                    border: selectedPhoto.type === 'postcard' ? `2px solid ${selectedPhoto.templateColor}` : 'none',
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <img
+                    src={selectedPhoto.image}
+                    alt={selectedPhoto.title}
+                    className="w-full h-64 object-cover"
+                  />
+                  {selectedPhoto.type === 'postcard' && (
+                    <div className="p-4 bg-space-dark">
+                      {isEditing ? (
+                        <textarea
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          rows={3}
+                          className="w-full p-3 rounded-xl bg-glass border border-glass-border text-white text-sm placeholder:text-text-muted focus:outline-none focus:border-gold/50 resize-none italic"
+                          placeholder="写下你的祝福..."
+                        />
+                      ) : (
+                        <p className="text-sm text-white leading-relaxed font-display italic">
+                          "{selectedPhoto.text}"
+                        </p>
+                      )}
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={user.avatar}
+                            alt=""
+                            className="w-6 h-6 rounded-full"
+                          />
+                          <span className="text-xs text-text-secondary">{user.nickname}</span>
+                        </div>
+                        <span className="text-xs text-gold">元宇宙博物馆</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 信息区域 */}
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-white">{selectedPhoto.title}</h3>
+                  {selectedPhoto.type === 'postcard' && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-gold font-medium">
+                      明信片
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-text-muted mb-2">
+                  📍 {selectedPhoto.location}
+                </p>
+                <p className="text-xs text-text-muted">
+                  📅 {formatDate(selectedPhoto.createdAt)}
+                </p>
+              </div>
+
+              {/* 操作按钮 */}
+              <div className="px-4 pb-4">
+                <div className="flex gap-3 mb-3">
+                  {selectedPhoto.type === 'postcard' && (
+                    <>
+                      <button
+                        onClick={handleToggleEdit}
+                        className={cn(
+                          'flex-1 btn-ghost flex items-center justify-center gap-2',
+                          isEditing && 'bg-gold/20 border-gold/50 text-gold'
+                        )}
+                      >
+                        {isEditing ? <Save size={16} /> : <Edit3 size={16} />}
+                        {isEditing ? '取消编辑' : '编辑寄语'}
+                      </button>
+                      {isEditing ? (
+                        <button
+                          onClick={handleSaveAsNew}
+                          className="flex-1 btn-gold flex items-center justify-center gap-2"
+                        >
+                          <Save size={16} />
+                          另存为新
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleShareFromDetail}
+                          className="flex-1 btn-gold flex items-center justify-center gap-2"
+                        >
+                          <Share2 size={16} />
+                          分享
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {selectedPhoto.type !== 'postcard' && (
+                    <button
+                      onClick={handleShareFromDetail}
+                      className="flex-1 btn-gold flex items-center justify-center gap-2"
+                    >
+                      <Share2 size={16} />
+                      分享
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleClosePhotoDetail}
+                  className="btn-ghost w-full"
+                >
+                  关闭
+                </button>
+              </div>
+            </GlassCard>
+          </div>
         </div>
       )}
     </div>

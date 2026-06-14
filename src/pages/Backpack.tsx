@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   Heart, Trophy, Clock, Calendar, Settings, ChevronRight, X, 
   Volume2, Subtitles, Bell, HelpCircle, Info, LogOut,
-  Send, Star, User, Edit3, Check, MessageSquare
+  Send, Star, User, Edit3, Check, MessageSquare, BellRing,
+  MapPin, Flag, Gift, AlertCircle, MessageCircle, Users
 } from 'lucide-react';
 import GlassCard from '@/components/GlassCard';
 import BadgeItem from '@/components/BadgeItem';
@@ -11,14 +12,17 @@ import { exhibits } from '@/data/exhibits';
 import { badges } from '@/data/tasks';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
+import type { Notification, NotificationType } from '@/types';
 
 const Backpack: React.FC = () => {
-  const { user, updateSettings, addReservation, addFeedback, setNickname } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'badges' | 'records' | 'settings'>('overview');
+  const { user, updateSettings, addReservation, addFeedback, setNickname,
+          markNotificationRead, markAllNotificationsRead } = useAppStore();
+  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'badges' | 'records' | 'settings' | 'notifications'>('overview');
   const [showSettings, setShowSettings] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showReservation, setShowReservation] = useState(false);
   const [showFeedbackList, setShowFeedbackList] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [feedbackType, setFeedbackType] = useState('');
   const [feedbackDesc, setFeedbackDesc] = useState('');
   const [editingName, setEditingName] = useState(false);
@@ -26,12 +30,68 @@ const Backpack: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+  const [notificationFilter, setNotificationFilter] = useState<NotificationType | 'all'>('all');
 
   const collectedExhibits = exhibits.filter(e => user.collectedExhibits.includes(e.id));
   const userBadges = badges.map(b => ({
     ...b,
     isUnlocked: user.unlockedBadges.includes(b.id)
   }));
+
+  const unreadNotifications = user.notifications.filter(n => !n.isRead).length;
+
+  const filteredNotifications = notificationFilter === 'all'
+    ? user.notifications
+    : user.notifications.filter(n => n.type === notificationFilter);
+
+  const notificationFilters: { id: NotificationType | 'all'; label: string }[] = [
+    { id: 'all', label: '全部' },
+    { id: 'reservation', label: '预约' },
+    { id: 'feedback', label: '反馈' },
+    { id: 'badge', label: '纪念章' },
+    { id: 'squad', label: '小队' },
+    { id: 'system', label: '系统' },
+  ];
+
+  const getNotificationIcon = (type: NotificationType) => {
+    switch (type) {
+      case 'reservation': return <Calendar size={18} className="text-teal" />;
+      case 'feedback': return <MessageCircle size={18} className="text-purple-400" />;
+      case 'badge': return <Trophy size={18} className="text-gold" />;
+      case 'squad': return <Users size={18} className="text-blue-400" />;
+      case 'system': return <Bell size={18} className="text-orange-400" />;
+    }
+  };
+
+  const getNotificationColor = (type: NotificationType) => {
+    switch (type) {
+      case 'reservation': return 'bg-teal/20';
+      case 'feedback': return 'bg-purple-500/20';
+      case 'badge': return 'bg-gold/20';
+      case 'squad': return 'bg-blue-500/20';
+      case 'system': return 'bg-orange-500/20';
+    }
+  };
+
+  const formatNotificationTime = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return `${minutes} 分钟前`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} 小时前`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} 天前`;
+    const date = new Date(timestamp);
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    if (!notification.isRead) {
+      markNotificationRead(notification.id);
+    }
+  };
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -89,6 +149,7 @@ const Backpack: React.FC = () => {
     { id: 'collection', label: '我的收藏', icon: Heart, count: user.collectedExhibits.length, color: 'text-red-400' },
     { id: 'badges', label: '纪念章册', icon: Trophy, count: user.unlockedBadges.length, color: 'text-gold' },
     { id: 'records', label: '参观记录', icon: Clock, count: user.visitCount, color: 'text-teal' },
+    { id: 'notifications', label: '消息动态', icon: BellRing, count: unreadNotifications, color: 'text-purple-400' },
   ];
 
   const settingsItems = [
@@ -117,12 +178,25 @@ const Backpack: React.FC = () => {
       <header className="relative z-10 px-4 pt-6 pb-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-gold-gradient">个人背包</h1>
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="p-2 text-text-secondary hover:text-white transition-colors"
-          >
-            <Settings size={22} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setActiveTab('notifications'); setShowNotifications(true); }}
+              className="relative p-2 text-text-secondary hover:text-white transition-colors"
+            >
+              <BellRing size={22} />
+              {unreadNotifications > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 text-text-secondary hover:text-white transition-colors"
+            >
+              <Settings size={22} />
+            </button>
+          </div>
         </div>
 
         {/* 用户信息卡片 */}
@@ -193,7 +267,7 @@ const Backpack: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="px-4">
             {/* 功能入口 */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-4 gap-3 mb-6">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -341,6 +415,107 @@ const Backpack: React.FC = () => {
                 </GlassCard>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                <BellRing size={18} className="text-purple-400" />
+                消息动态 ({filteredNotifications.length})
+              </h3>
+              <div className="flex items-center gap-3">
+                {unreadNotifications > 0 && (
+                  <button
+                    onClick={() => markAllNotificationsRead()}
+                    className="text-xs text-gold"
+                  >
+                    全部已读
+                  </button>
+                )}
+                <button
+                  onClick={() => { setActiveTab('overview'); setShowNotifications(false); }}
+                  className="text-xs text-text-secondary"
+                >
+                  返回
+                </button>
+              </div>
+            </div>
+
+            {/* 分类筛选 */}
+            <div className="mb-4">
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+                {notificationFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => setNotificationFilter(filter.id)}
+                    className={cn(
+                      'flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+                      notificationFilter === filter.id
+                        ? 'bg-gold text-space-dark'
+                        : 'bg-glass text-text-secondary hover:bg-glass-border'
+                    )}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 消息列表 */}
+            {filteredNotifications.length > 0 ? (
+              <div className="space-y-2 mb-8">
+                {filteredNotifications.map((notification) => (
+                  <GlassCard
+                    key={notification.id}
+                    hover
+                    onClick={() => handleNotificationClick(notification)}
+                    className={cn(
+                      'p-4 transition-all',
+                      !notification.isRead && 'bg-gold/5 border-gold/20'
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                        getNotificationColor(notification.type)
+                      )}>
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                            {notification.title}
+                            {!notification.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
+                            )}
+                          </h4>
+                          <span className="text-[10px] text-text-muted flex-shrink-0 whitespace-nowrap">
+                            {formatNotificationTime(notification.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-secondary mt-1">
+                          {notification.content}
+                        </p>
+                      </div>
+                    </div>
+                  </GlassCard>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 rounded-full bg-glass flex items-center justify-center mb-4">
+                  <BellRing size={36} className="text-text-muted" />
+                </div>
+                <p className="text-text-secondary mb-2">暂无消息</p>
+                <p className="text-text-muted text-sm">
+                  {notificationFilter === 'all'
+                    ? '完成探索任务会有惊喜哦'
+                    : `暂无${notificationFilters.find(f => f.id === notificationFilter)?.label}相关消息`}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

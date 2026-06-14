@@ -76,6 +76,49 @@ export interface Photo {
   text?: string;
 }
 
+export interface TourRoute {
+  id: string;
+  name: string;
+  description: string;
+  hallIds: string[];
+  exhibitIds: string[];
+  estimatedTime: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  icon: string;
+  color: string;
+}
+
+export interface SquadMember {
+  friendId: string;
+  name: string;
+  avatar: string;
+  currentHallId: string | null;
+  isOnline: boolean;
+  joinedAt: number;
+}
+
+export interface Squad {
+  id: string;
+  name: string;
+  leaderId: string;
+  members: SquadMember[];
+  currentHallId: string | null;
+  gatherPoint?: { x: number; y: number; name: string };
+  createdAt: number;
+}
+
+export type NotificationType = 'reservation' | 'feedback' | 'badge' | 'squad' | 'system';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  content: string;
+  relatedId?: string;
+  createdAt: number;
+  isRead: boolean;
+}
+
 export interface Reservation {
   id: string;
   type: 'offline_guide';
@@ -111,6 +154,10 @@ export interface UserData {
   selectedAvatar: string;
   chats: ChatSession[];
   feedbacks: Feedback[];
+  notifications: Notification[];
+  squad: Squad | null;
+  currentRouteId: string | null;
+  routeProgress: number;
 }
 
 export interface AvatarOption {
